@@ -1,0 +1,24 @@
+.root {
+  width: 5em;
+  height: 2.5em;
+
+  --button-bkg: var(--c-red);
+
+  background-color: var(--button-bkg);
+  box-shadow: var(--button-bkg) 0 0 0.5em 0;
+
+  border-radius: 0.2em;
+  color: var(--c-p);
+  text-transform: uppercase;
+  line-height: 1.2;
+  padding: 0 0.2em;
+  cursor: pointer;
+
+  &.colorYellow {
+    --button-bkg: var(--c-yellow);
+  }
+
+  &.colorGreen {
+    --button-bkg: var(--c-green);
+  }
+}
