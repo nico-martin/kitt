@@ -1,0 +1,19 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 0.8em;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+}
+
+.cell {
+  width: 1.6em;
+  height: 0.4em;
+  background-color: var(--c-red);
+}

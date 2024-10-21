@@ -5,7 +5,6 @@
   --button-bkg: var(--c-red);
 
   background-color: var(--button-bkg);
-  box-shadow: var(--button-bkg) 0 0 0.5em 0;
 
   border-radius: 0.2em;
   color: var(--c-p);
@@ -13,6 +12,30 @@
   line-height: 1.2;
   padding: 0 0.2em;
   cursor: pointer;
+  position: relative;
+  opacity: 0.8;
+  transition: ease-in-out var(--hover-speed) opacity;
+
+  &:after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-shadow: var(--button-bkg) 0 0 0.75em 0;
+    opacity: 0;
+    scale: 0.8;
+    transition:
+      ease-in-out var(--hover-speed) opacity,
+      ease-in-out var(--hover-speed) transform;
+  }
+
+  &:hover {
+    opacity: 1;
+
+    &:after {
+      opacity: 1;
+      scale: 1;
+    }
+  }
 
   &.colorYellow {
     --button-bkg: var(--c-yellow);
