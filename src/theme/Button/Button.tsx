@@ -3,7 +3,7 @@ import styles from './Button.module.css';
 import cn from '@utils/classnames.ts';
 
 interface ButtonProps {
-  children?: React.JSX.Element | React.JSX.Element[] | string;
+  children?: React.JSX.Element | React.JSX.Element[] | string | string[];
   className?: string;
   color?: 'yellow' | 'green' | 'red';
   onClick?: MouseEventHandler<HTMLButtonElement>;

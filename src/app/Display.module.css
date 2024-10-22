@@ -1,10 +1,13 @@
 .root {
   background-color: var(--c-red);
   border-radius: 0.4em;
-  padding: 0.75em;
 }
 
 .message {
   text-transform: uppercase;
   aspect-ratio: 16/9;
+  font-size: 2rem;
+  line-height: 1;
+  padding: 0.5em;
+  font-family: var(--font-digital);
 }
