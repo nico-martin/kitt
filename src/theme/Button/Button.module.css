@@ -1,6 +1,10 @@
 .root {
   width: 5em;
   height: 2.5em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 
   --button-bkg: var(--c-red);
 
@@ -17,7 +21,7 @@
   transition: ease-in-out var(--hover-speed) opacity;
 
   &:after {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     box-shadow: var(--button-bkg) 0 0 0.75em 0;
@@ -43,5 +47,11 @@
 
   &.colorGreen {
     --button-bkg: var(--c-green);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
   }
 }

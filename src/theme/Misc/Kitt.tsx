@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './Kitt.module.css';
+import cn from '@utils/classnames.ts';
 
 const getRowOpacity = (rowIndex: number, rows: number): number => {
   const middleRowIndex = Math.floor(rows / 2);
@@ -21,12 +22,13 @@ const getVolumePerCell = (
   return baseOpacity * volume + (1 - baseOpacity) * (volume * 0.6);
 };
 
-const Kitt: React.FC<{ rows?: number; cols?: number; volume?: number }> = ({
-  rows = 19,
-  cols = 3,
-  volume = 1,
-}) => (
-  <div className={styles.root}>
+const Kitt: React.FC<{
+  rows?: number;
+  cols?: number;
+  volume?: number;
+  className?: string;
+}> = ({ rows = 19, cols = 3, volume = 1, className = '' }) => (
+  <div className={cn(className, styles.root)}>
     {new Array(cols).fill('').map((_, colIndex) => (
       <div className={styles.col} key={colIndex}>
         {new Array(rows).fill('').map((_, rowIndex) => {

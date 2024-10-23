@@ -39,7 +39,7 @@
     "vite-tsconfig-paths": "^5.0.1"
   },
   "prettier": {
-    "singleQuote": true,
+    "singleQuote": false,
     "trailingComma": "es5",
     "importOrder": [
       "<THIRD_PARTY_MODULES>",

@@ -1,6 +1,16 @@
 .root {
   background-color: var(--c-red);
   border-radius: 0.4em;
+  position: relative;
+
+  &:after {
+    content: "";
+    position: absolute;
+    z-index: 10;
+    inset: 0.25rem;
+    border: 2px solid #000;
+    border-radius: 0.3em;
+  }
 }
 
 .message {

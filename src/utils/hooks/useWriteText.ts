@@ -1,10 +1,10 @@
-import React from 'react';
+import React from "react";
 
 const useWriteText = (
   text: string,
-  cps: number = 10
+  cps: number = 20
 ): { value: string; start: () => Promise<void> } => {
-  const [writtenText, setWrittenText] = React.useState('');
+  const [writtenText, setWrittenText] = React.useState("");
   const textLength = text.length;
 
   const start = (): Promise<void> =>
