@@ -1,18 +1,18 @@
 import React from "react";
 import styles from "./Display.module.css";
 import cn from "@utils/classnames.ts";
-import { TextLoader } from "../index.ts";
 
-const Display: React.FC<{ message?: string; className?: string }> = ({
-  message = "",
-  className = "",
-}) => {
+const Display: React.FC<{
+  messages?: Array<string | React.ReactElement>;
+  className?: string;
+}> = ({ messages = [], className = "" }) => {
   return (
     <div className={cn(styles.root, className)}>
-      <p className={cn(styles.message)}>
-        <TextLoader />
-        {message}
-      </p>
+      <div className={cn(styles.messages)}>
+        {messages.map((message, i) => (
+          <p key={i}>{message}</p>
+        ))}
+      </div>
     </div>
   );
 };

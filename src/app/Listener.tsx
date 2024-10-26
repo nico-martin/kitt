@@ -1,11 +1,13 @@
 import React from "react";
 import { Button } from "@theme";
 import cn from "@utils/classnames.ts";
+import useTranscriber from "@utils/transcriber/useTranscriber.ts";
 
-const ConnectCar: React.FC<{ className?: string; disabled: boolean }> = ({
+const Listener: React.FC<{ className?: string; disabled: boolean }> = ({
   className = "",
   disabled,
 }) => {
+  const { isListening } = useTranscriber();
   return (
     <Button
       onClick={() => alert("todo")}
@@ -13,9 +15,9 @@ const ConnectCar: React.FC<{ className?: string; disabled: boolean }> = ({
       color="yellow"
       disabled={disabled}
     >
-      Connect
+      {isListening ? "Listening.." : "Listen"}
     </Button>
   );
 };
 
-export default ConnectCar;
+export default Listener;

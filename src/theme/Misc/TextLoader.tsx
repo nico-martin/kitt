@@ -3,7 +3,7 @@ import styles from "./TextLoader.module.css";
 
 const CHARACTERS = ["-", "\\", "|", "/"];
 
-const TextLoader: React.FC<{ done?: boolean }> = ({ done = true }) => {
+const TextLoader: React.FC<{ done?: boolean }> = ({ done = false }) => {
   const [index, setIndex] = React.useState<number>(0);
 
   React.useEffect(() => {
