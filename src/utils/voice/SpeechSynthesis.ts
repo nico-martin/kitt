@@ -1,6 +1,7 @@
 class SpeechSynthesis extends EventTarget {
   private _volume = 1;
-  private recorder: MediaRecorder;
+  private language = "en-US";
+  //private recorder: MediaRecorder;
 
   public get volume() {
     return this._volume;
@@ -24,7 +25,13 @@ class SpeechSynthesis extends EventTarget {
     document.body.appendChild(audioElement);
   }
 
+  public calculateVolume = () => {
+    // random number between 0.2 and 1
+    this.volume = Math.random() * 0.8 + 0.2;
+  };
+
   public setup = async () => {
+    /*
     const devices = await navigator.mediaDevices.enumerateDevices();
     const outputDevice = devices.find(
       (device) => device.kind === "audiooutput"
@@ -36,6 +43,7 @@ class SpeechSynthesis extends EventTarget {
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: { deviceId: outputDevice.deviceId },
     });
+
     this.recorder = new MediaRecorder(stream);
     this.recorder.onstart = () => {
       this.volume = 0.1;
@@ -62,31 +70,26 @@ class SpeechSynthesis extends EventTarget {
         const percentage = (vol - minVol) / (maxVol - minVol);
         this.volume = percentage < 0 ? 0 : percentage > 1 ? 1 : percentage;
       }
-    };
+    };*/
   };
 
-  public speak = (text: string): Promise<void> =>
+  public speak = (text: string, language = this.language): Promise<void> =>
     new Promise((resolve) => {
-      if (!this.recorder) {
-        throw new Error("Recorder not initialized");
-      }
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "en-US";
+      utterance.lang = language;
       const voices = speechSynthesis
         .getVoices()
-        .filter((voice) => voice.lang === "en-US");
+        .filter((voice) => voice.lang === language);
       utterance.voice = voices[0];
 
       utterance.onstart = () => {
-        this.recorder.start();
-        this.recorder.requestData();
         const intervalId = setInterval(() => {
-          this.recorder.requestData();
-        }, 10);
+          this.calculateVolume();
+        }, 100);
 
         utterance.onend = () => {
-          this.recorder.stop();
           clearInterval(intervalId);
+          this.volume = 0.1;
           resolve();
         };
       };

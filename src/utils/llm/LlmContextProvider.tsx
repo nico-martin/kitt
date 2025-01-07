@@ -23,18 +23,15 @@ const LlmContextProvider: React.FC<{
   const setup = async (
     callback: InitProgressCallback = () => {}
   ): Promise<void> => {
-    console.log("Setting up LLM");
     setStatus(LlmStatus.LOADING);
     await llmInstance.initialize(callback);
-    console.log("LLM setup complete");
-
     setStatus(LlmStatus.READY);
   };
 
-  const generate = (
+  const generate = async (
     prompt: string = "",
     callback: (data: CallbackData) => void = () => {}
-  ) => llmInstance.generate(prompt, callback);
+  ) => await llmInstance.generate(prompt, callback);
 
   return (
     <context.Provider

@@ -1,6 +1,8 @@
 import React from "react";
 import transcriberContext, { TranscriberStatus } from "./transcriberContext.ts";
 import Transcriber from "./Transcriber.ts";
+import useLlm from "@utils/llm/useLlm.ts";
+import useVoice from "@utils/voice/useVoice.ts";
 
 const TranscriberContextProvider: React.FC<{
   children: React.ReactElement;
@@ -11,6 +13,8 @@ const TranscriberContextProvider: React.FC<{
   );
   const [isListening, setIsListening] = React.useState<boolean>(false);
 
+  const { generate } = useLlm();
+  const { talk } = useVoice();
   const setup = async () => {
     setStatus(TranscriberStatus.LOADING);
     try {
@@ -40,7 +44,12 @@ const TranscriberContextProvider: React.FC<{
       if (event.code === "Space" || event.key === " ") {
         event.preventDefault();
         setIsListening(false);
-        transcriber.stopRecording().then((text) => console.log(text));
+        transcriber.stopRecording().then(async (text) => {
+          console.log(text);
+          const response = await generate(text);
+          console.log(response);
+          await talk(response);
+        });
       }
     };
 
@@ -58,6 +67,20 @@ const TranscriberContextProvider: React.FC<{
   return (
     <transcriberContext.Provider value={{ status, setup, isListening }}>
       {children}
+      <form
+        style={{ backgroundColor: "#fff" }}
+        onSubmit={async (e) => {
+          e.preventDefault();
+          const prompt = document.querySelector(
+            "textarea[name=prompt]"
+          ) as HTMLTextAreaElement;
+          const response = await generate(prompt.value);
+          console.log(response);
+        }}
+      >
+        <textarea name="prompt"></textarea>
+        <button type="submit">submit</button>
+      </form>
     </transcriberContext.Provider>
   );
 };

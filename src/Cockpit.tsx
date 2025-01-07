@@ -107,11 +107,13 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
       ) : (
         <Button
           className={styles.startButton}
-          onClick={async () => {
-            await setupLlm((d) => setLlmProgress(d.progress));
-            await setupTranscriber();
-            await setupVoice();
-          }}
+          onClick={async () =>
+            await Promise.all([
+              setupLlm((d) => setLlmProgress(d.progress)),
+              setupTranscriber(),
+              setupVoice(),
+            ])
+          }
         >
           Start!
         </Button>

@@ -18,7 +18,10 @@ export interface CallbackData {
 
 export interface Context {
   setup: (callback?: InitProgressCallback) => Promise<void>;
-  generate: (prompt: string, callback?: (data: CallbackData) => void) => void;
+  generate: (
+    prompt: string,
+    callback?: (data: CallbackData) => void
+  ) => Promise<string>;
   messages: Array<CompletionMessage>;
   status: LlmStatus;
   busy: boolean;
@@ -26,7 +29,7 @@ export interface Context {
 
 export const context = React.createContext<Context>({
   setup: async () => {},
-  generate: async () => "",
+  generate: () => Promise.resolve(""),
   messages: [],
   status: LlmStatus.IDLE,
   busy: false,

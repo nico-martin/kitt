@@ -1,4 +1,8 @@
-import { CreateMLCEngine, MLCEngine } from "@mlc-ai/web-llm";
+import {
+  ChatCompletionTool,
+  CreateMLCEngine,
+  MLCEngine,
+} from "@mlc-ai/web-llm";
 import { CompletionMessage } from "./types.ts";
 import { CallbackData } from "./llmContext.ts";
 import { InitProgressCallback } from "@mlc-ai/web-llm/lib/types";
@@ -14,7 +18,65 @@ const model = {
   about:
     "The Gemma2 9B model is a compact, state-of-the-art text generation model from Google's Gemma family. It excels in tasks like question answering, summarization, and reasoning, and is small enough to run on resource-limited devices, making advanced AI accessible and fostering innovation.",
 };
+const SYSTEM_MESSAGE = `You are KITT, a helpful talking AI car. Keep your answers short`;
+const system_prompt = `You are a function calling AI model. You are provided with function signatures within <tools></tools> XML tags. You may call one or more functions to assist with the user query. Don't make assumptions about what values to plug into functions. Here are the available tools: 
+<tools> {
+  "type": "function",
+  "function":
+  {
+    "name": "get_stock_fundamentals",
+    "description": "get_stock_fundamentals(symbol: str) -> dict - Get fundamental data for a given stock symbol using yfinance API.
+      Args:
+        symbol (str): The stock symbol.
+      Returns:
+        dict: A dictionary containing fundamental data.
+      Keys:
+        - 'symbol': The stock symbol.
+        - 'company_name': The long name of the company.
+        - 'sector': The sector to which the company belongs.
+        - 'industry': The industry to which the company belongs.
+        - 'market_cap': The market capitalization of the company.
+        - 'pe_ratio': The forward price-to-earnings ratio.
+        - 'pb_ratio': The price-to-book ratio.
+        - 'dividend_yield': The dividend yield.
+        - 'eps': The trailing earnings per share.
+        - 'beta': The beta value of the stock.
+        - '52_week_high': The 52-week high price of the stock.
+        - '52_week_low': The 52-week low price of the stock.",
+    "parameters":
+      {
+        "type": "object",
+        "properties": 
+        "symbol": {
+          "type": "string"
+        }
+      },
+      "required": ["symbol"]
+    }
+  }
+}
+</tools>
+Use the following pydantic model json schema for each tool call you will make:
+{
+  "properties": {
+    "arguments": {
+      "title": "Arguments",
+      "type": "object"
+    },
+    "name": {
+      "title": "Name", 
+      "type": "string"
+    }
+  },
+  "required": ["arguments", "name"],
+  "title": "FunctionCall",
+  "type": "object"
+}
+For each function call return a json object with function name and arguments within <tool_call></tool_call> XML tags as follows:\n<tool_call>\n{"arguments": <args-dict>, "name": <function-name>}\n</tool_call>
+`;
 
+//const SYSTEM_MESSAGE_DE = `Du bist KITT, ein hilfreiches sprechendes KI-Auto. Antworte kurz und prägnant`;
+/*
 const SYSTEM_MESSAGE = `You are KITT, a helpful talking AI car.
 Your current speed is 0 and your current direction is 0
 You can use the following functions:
@@ -111,7 +173,7 @@ Here are some examples how you can answer:
   "function": null,
   "parameter": null
 }
-`;
+`;*/
 
 class Llm extends EventTarget {
   private _workerBusy: boolean;
@@ -193,7 +255,6 @@ class Llm extends EventTarget {
       if (model.id === this.modelLoaded) {
         resolve(true);
       }
-      console.log("Initializing model...", model.id);
       CreateMLCEngine(model.id, {
         initProgressCallback: callback,
         appConfig: {
@@ -208,8 +269,6 @@ class Llm extends EventTarget {
       })
         .then((engine) => {
           this.engine = engine;
-          console.log("done model...");
-
           this.modelLoaded = model.id;
           resolve(true);
         })
@@ -226,6 +285,27 @@ class Llm extends EventTarget {
         await this.initialize();
       }
 
+      const tools: Array<ChatCompletionTool> = [
+        {
+          type: "function",
+          function: {
+            name: "get_current_weather",
+            description: "Get the current weather in a given location",
+            parameters: {
+              type: "object",
+              properties: {
+                location: {
+                  type: "string",
+                  description: "The city and state, e.g. San Francisco, CA",
+                },
+                unit: { type: "string", enum: ["celsius", "fahrenheit"] },
+              },
+              required: ["location"],
+            },
+          },
+        },
+      ];
+
       this.workerBusy = true;
       const newMessages: Array<CompletionMessage> = [
         ...this.messages,
@@ -235,13 +315,19 @@ class Llm extends EventTarget {
       this.messages = newMessages;
 
       try {
-        const chunks = await this.engine.chat.completions.create({
+        const reply = await this.engine.chat.completions.create({
           messages: newMessages,
           temperature: 1,
-          stream: true,
+          //stream: true,
           stream_options: { include_usage: true },
+          tools,
+          tool_choice: "auto",
         });
+        const message = await this.engine.getMessage();
+        console.log(reply);
+        callback({ output: message });
 
+        /*
         let reply = "";
         for await (const chunk of chunks) {
           reply += chunk.choices[0]?.delta.content || "";
@@ -254,7 +340,7 @@ class Llm extends EventTarget {
           } else {
             callback({ output: reply });
           }
-        }
+        }*/
 
         const fullReply = await this.engine.getMessage();
         this.workerBusy = false;

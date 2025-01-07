@@ -15,7 +15,7 @@ const TextLoader: React.FC<{ done?: boolean }> = ({ done = false }) => {
     return () => clearInterval(interval);
   }, [done]);
 
-  return <span className={styles.font}>{done ? "_" : CHARACTERS[index]}</span>;
+  return <span className={styles.font}>{done ? "-" : CHARACTERS[index]}</span>;
 };
 
 export default TextLoader;
