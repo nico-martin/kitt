@@ -1,7 +1,6 @@
 class SpeechSynthesis extends EventTarget {
   private _volume = 1;
   private language = "en-US";
-  //private recorder: MediaRecorder;
 
   public get volume() {
     return this._volume;
@@ -20,9 +19,6 @@ class SpeechSynthesis extends EventTarget {
 
   public constructor() {
     super();
-    const audioElement = new Audio();
-    audioElement.style.display = "none"; // Hidden audio element
-    document.body.appendChild(audioElement);
   }
 
   public calculateVolume = () => {
@@ -30,48 +26,7 @@ class SpeechSynthesis extends EventTarget {
     this.volume = Math.random() * 0.8 + 0.2;
   };
 
-  public setup = async () => {
-    /*
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const outputDevice = devices.find(
-      (device) => device.kind === "audiooutput"
-    );
-    if (!outputDevice) {
-      throw new Error("No output device found");
-    }
-
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: { deviceId: outputDevice.deviceId },
-    });
-
-    this.recorder = new MediaRecorder(stream);
-    this.recorder.onstart = () => {
-      this.volume = 0.1;
-    };
-    this.recorder.onstop = () => {
-      this.volume = 0.1;
-    };
-    this.recorder.ondataavailable = async (event) => {
-      // todo: I dont think that works at all..
-      const arrayBuffer = await event.data.arrayBuffer();
-      const dataArray = new Uint8Array(arrayBuffer);
-      const audioContext = new AudioContext();
-      const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 32;
-      const bufferLength = analyser.frequencyBinCount;
-      const frequencyData = new Uint8Array(bufferLength);
-      analyser.getByteFrequencyData(frequencyData);
-      const sum = dataArray.reduce((a, b) => a + b, 0);
-      const vol = sum / dataArray.length;
-
-      if (!isNaN(vol)) {
-        const minVol = 125;
-        const maxVol = 131;
-        const percentage = (vol - minVol) / (maxVol - minVol);
-        this.volume = percentage < 0 ? 0 : percentage > 1 ? 1 : percentage;
-      }
-    };*/
-  };
+  public setup = async () => {};
 
   public speak = (text: string, language = this.language): Promise<void> =>
     new Promise((resolve) => {

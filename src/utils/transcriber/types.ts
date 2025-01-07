@@ -1,63 +1,17 @@
-export enum PipelineStatus {
+export enum TranscriberStatus {
   IDLE = "idle",
-  DOWNLOAD = "download",
+  LOADING = "loading",
   READY = "ready",
-  COMPLETE = "complete",
   ERROR = "error",
 }
 
-export interface WorkerRequest {
-  language?: string;
-  maxNewTokens?: number;
-  audio?: Float32Array;
-  id: string;
-  log?: boolean;
+export interface Listener {
+  start: () => void;
+  end: () => Promise<string>;
 }
 
-interface FileLoadingCallbackDataNormal {
-  file: string;
-  name: string;
-  status: "initiate" | "progress" | "download" | "done";
+export interface TranscriberContextI {
+  status: TranscriberStatus;
+  setup: () => void;
+  createListener: () => Listener;
 }
-
-interface FileLoadingCallbackDataProgress {
-  file: string;
-  name: string;
-  status: "progress";
-  progress?: number;
-  loaded?: number;
-  total?: number;
-}
-
-export type FileLoadingCallbackData =
-  | FileLoadingCallbackDataNormal
-  | FileLoadingCallbackDataProgress;
-
-export type InitPipelineProgressEvent = {
-  status: PipelineStatus.DOWNLOAD;
-  file: FileLoadingCallbackData;
-  id: string;
-};
-
-export type PipelineReadyEvent = {
-  status: PipelineStatus.READY;
-  id: string;
-};
-
-export type TranscribeErrorEvent = {
-  status: PipelineStatus.ERROR;
-  error: any;
-  id: string;
-};
-
-export type CompleteEvent = {
-  status: PipelineStatus.COMPLETE;
-  text: string;
-  id: string;
-};
-
-export type WorkerResponse =
-  | InitPipelineProgressEvent
-  | PipelineReadyEvent
-  | TranscribeErrorEvent
-  | CompleteEvent;

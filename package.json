@@ -13,17 +13,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@huggingface/transformers": "^3.0.0",
-    "@mlc-ai/web-llm": "^0.2.73",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "uuid": "^10.0.0"
+    "@huggingface/transformers": "^3.2.4",
+    "@mlc-ai/web-llm": "^0.2.77",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
-    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
-    "@types/react": "^18.3.5",
-    "@types/react-dom": "^18.3.0",
+    "@trivago/prettier-plugin-sort-imports": "^5.2.0",
+    "@types/dom-speech-recognition": "^0.0.4",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.20",
     "dotenv": "^16.4.5",
@@ -42,6 +43,9 @@
     "vite-tsconfig-paths": "^5.0.1"
   },
   "prettier": {
+    "plugins": [
+      "@trivago/prettier-plugin-sort-imports"
+    ],
     "singleQuote": false,
     "trailingComma": "es5",
     "importOrder": [

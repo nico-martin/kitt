@@ -1,8 +1,6 @@
 import React from "react";
-import transcriberContext from "./transcriberContext.ts";
+import TranscriberContext from "./TranscriberContext.ts";
 
-const useTranscriber = () => {
-  return React.useContext(transcriberContext);
-};
+const useTranscriber = () => React.use(TranscriberContext);
 
 export default useTranscriber;

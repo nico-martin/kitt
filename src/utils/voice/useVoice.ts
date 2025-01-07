@@ -1,6 +1,6 @@
 import React from "react";
-import voiceContext from "./voiceContext.ts";
+import VoiceContext from "./VoiceContext.ts";
 
-const useVoice = () => React.useContext(voiceContext);
+const useVoice = () => React.use(VoiceContext);
 
 export default useVoice;

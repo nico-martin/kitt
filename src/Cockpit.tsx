@@ -1,16 +1,19 @@
-import React from "react";
-import styles from "./Cockpit.module.css";
-import cn from "@utils/classnames.ts";
 import { Button, Display, Kitt, TextLoader } from "@theme";
+import React from "react";
 
 import ConnectCar from "@app/ConnectCar.tsx";
 import Listener from "@app/Listener.tsx";
-import useTranscriber from "@utils/transcriber/useTranscriber.ts";
-import { TranscriberStatus } from "@utils/transcriber/transcriberContext.ts";
-import useVoice from "@utils/voice/useVoice.ts";
-import { VoiceStatus } from "@utils/voice/voiceContext.ts";
-import useLlm from "@utils/llm/useLlm.ts";
+
+import useBrain from "@utils/brain/useBrain.ts";
+import cn from "@utils/classnames.ts";
 import { LlmStatus } from "@utils/llm/llmContext.ts";
+import useLlm from "@utils/llm/useLlm.ts";
+import { TranscriberStatus } from "@utils/transcriber/types.ts";
+import useTranscriber from "@utils/transcriber/useTranscriber.ts";
+import { VoiceStatus } from "@utils/voice/types.ts";
+import useVoice from "@utils/voice/useVoice.ts";
+
+import styles from "./Cockpit.module.css";
 
 const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
   const { status: transcriberStatus, setup: setupTranscriber } =
@@ -18,6 +21,11 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
   const { talk, status: voiceStatus, setup: setupVoice, volume } = useVoice();
   const { status: llmStatus, setup: setupLlm } = useLlm();
   const [llmProgress, setLlmProgress] = React.useState<number>(0);
+  const brain = useBrain();
+
+  React.useEffect(() => {
+    console.log(brain);
+  }, [brain]);
 
   const [messages, setMessages] = React.useState<
     Array<string | React.ReactElement>

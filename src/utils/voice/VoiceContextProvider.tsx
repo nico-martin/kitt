@@ -1,6 +1,7 @@
 import React from "react";
-import voiceContext, { VoiceStatus } from "./voiceContext.ts";
+import VoiceContext from "./VoiceContext.ts";
 import SpeechSynthesis from "./SpeechSynthesis.ts";
+import { VoiceStatus } from "./types.ts";
 
 const VoiceContextProvider: React.FC<{ children: React.ReactElement }> = ({
   children,
@@ -32,9 +33,9 @@ const VoiceContextProvider: React.FC<{ children: React.ReactElement }> = ({
   };
 
   return (
-    <voiceContext.Provider value={{ status, setup, volume, isTalking, talk }}>
+    <VoiceContext value={{ status, setup, volume, isTalking, talk }}>
       {children}
-    </voiceContext.Provider>
+    </VoiceContext>
   );
 };
 
