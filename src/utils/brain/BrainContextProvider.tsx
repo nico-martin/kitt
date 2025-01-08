@@ -1,6 +1,6 @@
 import React from "react";
 
-import { LlmStatus } from "../llm/llmContext.ts";
+import { LlmStatus } from "../llm/types.ts";
 import useLlm from "../llm/useLlm.ts";
 import { TranscriberStatus } from "../transcriber/types.ts";
 import useTranscriber from "../transcriber/useTranscriber.ts";

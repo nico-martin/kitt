@@ -6,7 +6,7 @@ import Listener from "@app/Listener.tsx";
 
 import useBrain from "@utils/brain/useBrain.ts";
 import cn from "@utils/classnames.ts";
-import { LlmStatus } from "@utils/llm/llmContext.ts";
+import { LlmStatus } from "@utils/llm/types.ts";
 import useLlm from "@utils/llm/useLlm.ts";
 import { TranscriberStatus } from "@utils/transcriber/types.ts";
 import useTranscriber from "@utils/transcriber/useTranscriber.ts";
@@ -19,7 +19,7 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
   const { status: transcriberStatus, setup: setupTranscriber } =
     useTranscriber();
   const { talk, status: voiceStatus, setup: setupVoice, volume } = useVoice();
-  const { status: llmStatus, setup: setupLlm } = useLlm();
+  const { status: llmStatus, setup: setupLlm, createConversation } = useLlm();
   const [llmProgress, setLlmProgress] = React.useState<number>(0);
   const brain = useBrain();
 
@@ -117,7 +117,7 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
           className={styles.startButton}
           onClick={async () =>
             await Promise.all([
-              setupLlm((d) => setLlmProgress(d.progress)),
+              setupLlm((progress) => setLlmProgress(progress)),
               setupTranscriber(),
               setupVoice(),
             ])

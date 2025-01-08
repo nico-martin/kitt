@@ -1,7 +1,8 @@
-import React from 'react';
+import React from "react";
 
-import { Context, context } from './llmContext.ts';
+import { LlmContext } from "./LlmContext.ts";
+import { LlmContextI } from "./types.ts";
 
-const useLlm = (): Context => React.useContext(context);
+const useLlm = (): LlmContextI => React.use(LlmContext);
 
 export default useLlm;
