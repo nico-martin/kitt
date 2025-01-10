@@ -87,19 +87,29 @@ class WebLlm extends EventTarget {
       modelId: this.model.id,
     });
 
-    const chunks = await this.engine.chat.completions.create(request.request);
-    let reply = "";
-    for await (const chunk of chunks) {
-      reply += chunk.choices[0]?.delta.content || "";
+    try {
+      const chunks = await this.engine.chat.completions.create(request.request);
+      let reply = "";
+      for await (const chunk of chunks) {
+        reply += chunk.choices[0]?.delta.content || "";
+        this.dispatchGenerateUpdate(request.id, {
+          status: chunk?.usage
+            ? GenerateCallbackStatus.DONE
+            : GenerateCallbackStatus.UPDATE,
+          statusText: "",
+          output: reply,
+          stats: chunk?.usage || null,
+          modelId: this.model.id,
+        });
+      }
+    } catch (e) {
       this.dispatchGenerateUpdate(request.id, {
-        status: chunk?.usage
-          ? GenerateCallbackStatus.DONE
-          : GenerateCallbackStatus.UPDATE,
-        statusText: "",
-        output: reply,
-        stats: chunk?.usage || null,
+        status: GenerateCallbackStatus.ERROR,
+        statusText: e.toString(),
+        output: "",
         modelId: this.model.id,
       });
+      console.log(e);
     }
     this.queueInProgress = false;
     this.executeQueue();
@@ -140,7 +150,7 @@ class WebLlm extends EventTarget {
         text: string,
         callback: (partialAnswer: string) => void = () => {}
       ): Promise<string> =>
-        new Promise((resolve) => {
+        new Promise((resolve, reject) => {
           messages.push({
             role: "user",
             content: text,
@@ -165,6 +175,10 @@ class WebLlm extends EventTarget {
               callback(data.output);
               if (data.status === "DONE") {
                 resolve(data.output);
+                removeListener();
+              }
+              if (data.status === "ERROR") {
+                reject(data.statusText);
                 removeListener();
               }
             }

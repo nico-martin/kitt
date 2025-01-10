@@ -4,7 +4,6 @@ import React from "react";
 import ConnectCar from "@app/ConnectCar.tsx";
 import Listener from "@app/Listener.tsx";
 
-import useBrain from "@utils/brain/useBrain.ts";
 import cn from "@utils/classnames.ts";
 import { LlmStatus } from "@utils/llm/types.ts";
 import useLlm from "@utils/llm/useLlm.ts";
@@ -19,13 +18,8 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
   const { status: transcriberStatus, setup: setupTranscriber } =
     useTranscriber();
   const { talk, status: voiceStatus, setup: setupVoice, volume } = useVoice();
-  const { status: llmStatus, setup: setupLlm, createConversation } = useLlm();
+  const { status: llmStatus, setup: setupLlm } = useLlm();
   const [llmProgress, setLlmProgress] = React.useState<number>(0);
-  const brain = useBrain();
-
-  React.useEffect(() => {
-    console.log(brain);
-  }, [brain]);
 
   const [messages, setMessages] = React.useState<
     Array<string | React.ReactElement>

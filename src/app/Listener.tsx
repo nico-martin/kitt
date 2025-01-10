@@ -10,7 +10,6 @@ const Listener: React.FC<{ className?: string; disabled: boolean }> = ({
   disabled,
 }) => {
   const { status } = useBrain();
-  console.log(status);
   return (
     <Button
       onClick={() => alert("todo")}

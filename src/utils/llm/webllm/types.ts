@@ -27,6 +27,7 @@ export enum GenerateCallbackStatus {
   THINKING = "THINKING",
   UPDATE = "UPDATE",
   DONE = "DONE",
+  ERROR = "ERROR",
 }
 
 export interface GenerateCallbackData {
