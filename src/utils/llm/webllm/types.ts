@@ -1,7 +1,12 @@
+export interface GenerateReturn {
+  output: string;
+  stats?: GenerateCallbackStats;
+}
+
 export type GenerateFn = (
   prompt: string,
-  callback?: (answer: string) => void
-) => Promise<string>;
+  callback?: (answer: GenerateReturn) => void
+) => Promise<GenerateReturn>;
 
 export interface InitializeCallbackData {
   progress: number;

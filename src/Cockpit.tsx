@@ -3,6 +3,7 @@ import React from "react";
 
 import ConnectCar from "@app/ConnectCar.tsx";
 import Listener from "@app/Listener.tsx";
+import ManageEpisodesModal from "@app/manageEpisodes/ManageEpisodesModal.tsx";
 
 import cn from "@utils/classnames.ts";
 import { LlmStatus } from "@utils/llm/types.ts";
@@ -20,6 +21,8 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
   const { talk, status: voiceStatus, setup: setupVoice, volume } = useVoice();
   const { status: llmStatus, setup: setupLlm } = useLlm();
   const [llmProgress, setLlmProgress] = React.useState<number>(0);
+  const [hippocampusModal, setHippocampusModal] =
+    React.useState<boolean>(false);
 
   const [messages, setMessages] = React.useState<
     Array<string | React.ReactElement>
@@ -100,7 +103,13 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
           <Button color="yellow" disabled>
             Camera
           </Button>
-          <Button color="yellow" disabled />
+          <ManageEpisodesModal
+            show={hippocampusModal}
+            setShow={setHippocampusModal}
+          />
+          <Button color="yellow" onClick={() => setHippocampusModal(true)}>
+            Memories
+          </Button>
           <Button color="yellow" disabled />
         </div>
       </div>

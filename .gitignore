@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # misc
-screenplays/screenplays/*
+public/screenplays/*

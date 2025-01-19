@@ -1,7 +1,10 @@
 import React from "react";
-import VoiceContext from "./VoiceContext.ts";
+
 import SpeechSynthesis from "./SpeechSynthesis.ts";
+import VoiceContext from "./VoiceContext.ts";
 import { VoiceStatus } from "./types.ts";
+
+// todo: maybe https://huggingface.co/posts/Xenova/503648859052804
 
 const VoiceContextProvider: React.FC<{ children: React.ReactElement }> = ({
   children,

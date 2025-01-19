@@ -10,6 +10,7 @@ import {
   GenerateCallbackData,
   GenerateCallbackStatus,
   GenerateFn,
+  GenerateReturn,
 } from "@utils/llm/webllm/types.ts";
 
 import Model from "./models/Model.ts";
@@ -69,7 +70,7 @@ class WebLlm extends EventTarget {
 
     if (!this.engine) {
       this.logger("Engine not initialized");
-      return;
+      await this.initialize();
     }
 
     if (this.queueInProgress) {
@@ -136,7 +137,8 @@ class WebLlm extends EventTarget {
   };
 
   public createConversation = (
-    systemPrompt: string
+    systemPrompt: string,
+    temperature: number = 1
   ): { generate: GenerateFn } => {
     const messages: Array<ChatCompletionMessageParam> = [
       { role: "system", content: systemPrompt },
@@ -148,8 +150,8 @@ class WebLlm extends EventTarget {
     return {
       generate: async (
         text: string,
-        callback: (partialAnswer: string) => void = () => {}
-      ): Promise<string> =>
+        callback: (data: GenerateReturn) => void = () => {}
+      ): Promise<GenerateReturn> =>
         new Promise((resolve, reject) => {
           messages.push({
             role: "user",
@@ -161,20 +163,20 @@ class WebLlm extends EventTarget {
             id: requestID,
             request: {
               messages,
-              temperature: 1,
+              temperature,
               stream: true,
               stream_options: { include_usage: true },
             },
           });
-          callback("");
+          callback({ output: "" });
 
           this.executeQueue();
           const removeListener = this.onGenerateUpdate(
             requestID,
             (data: GenerateCallbackData) => {
-              callback(data.output);
+              callback(data);
               if (data.status === "DONE") {
-                resolve(data.output);
+                resolve(data);
                 removeListener();
               }
               if (data.status === "ERROR") {

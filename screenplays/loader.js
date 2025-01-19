@@ -2,14 +2,14 @@ import * as cheerio from "cheerio";
 import fs from "fs";
 import fetch from "node-fetch";
 
-import { seasons } from "./constants.js";
+import episodes from "../public/episodes.json" assert {type: "json"};
 
 (async () => {
   let seasonNumber = 0;
-  for (const season of seasons) {
+  for (const season of episodes) {
     seasonNumber++;
     let episodeNumber = 0;
-    for (const [title, link] of season) {
+    for (const [, link] of season) {
       episodeNumber++;
       if (!link) {
         continue;
@@ -17,17 +17,21 @@ import { seasons } from "./constants.js";
       try {
         const resp = await fetch(link);
         const text = await resp.text();
-
-        // Load the HTML into Cheerio
         const $ = cheerio.load(text);
+        let screenplay = $("#content pre").text();
 
-        // Query the content inside #content pre
-        const screenplay = $("#content pre").text();
+        // Bug with 2-15
+        if (seasonNumber === 2 && episodeNumber === 15) {
+          const lines = screenplay.split("\n");
+          screenplay = lines
+            .map((line) => (line === "." ? "" : line))
+            .join("\n");
+        }
+
         fs.writeFileSync(
-          `./screenplays/${seasonNumber}-${episodeNumber}.txt`,
+          `../public/screenplays/${seasonNumber}-${episodeNumber}.txt`,
           screenplay
         );
-        //await parseEpisode(screenplay, title, seasonNumber, episodeNumber);
       } catch (e) {
         console.log("Error: Episode", seasonNumber, episodeNumber);
         console.error(e);

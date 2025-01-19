@@ -5,7 +5,8 @@
   --fs-xssmall: 0.6rem;
   --fs-big: 1.2rem;
   --fs-xbig: 1.8rem;
-  --font: Anton, sans-serif;
+  --font: Arial, sans-serif;
+  --font-future: Anton, sans-serif;
   --font-digital: Digital-7, sans-serif;
 }
 
@@ -27,19 +28,26 @@ b {
 
 h1,
 h2,
-h3 {
-  font-family: var(--font);
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-future);
   font-weight: 700;
   line-height: 1.1;
-  font-size: 1.5em;
+  font-size: 1.6rem;
 }
 
 h2 {
-  font-size: 1.3em;
+  font-size: 1.4rem;
 }
 
 h3 {
-  font-size: 1.2em;
+  font-size: 1.2rem;
+}
+
+h4 {
+  font-size: 1rem;
 }
 
 /* button reset */
@@ -47,6 +55,7 @@ button {
   background-color: transparent;
   border: none;
   padding: 0;
+  font-family: var(--font-future);
 }
 
 a {

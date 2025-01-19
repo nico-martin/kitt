@@ -1,0 +1,61 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.meta {
+}
+
+.searchEpisode {
+  display: flex;
+  gap: 1rem;
+
+  label {
+    white-space: nowrap;
+  }
+}
+
+.activeEpisode {
+  margin-top: 2rem;
+}
+
+.activeEpisodeTitle {
+}
+
+.activeEpisodeProcess {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.activeEpisodeSummary {
+  border: 1px solid #fff;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  border-radius: var(--border-radius);
+  background-color: var(--c-bkg-to);
+}
+
+.activeEpisodeSummaryTokens {
+  align-self: flex-start;
+  font-size: 0.75rem;
+}
+
+.actList,
+.sceneList {
+  list-style: none;
+
+  & > li {
+    margin-top: 1rem;
+  }
+}
+
+.sceneText {
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}
