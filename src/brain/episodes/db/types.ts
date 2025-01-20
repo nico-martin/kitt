@@ -18,6 +18,7 @@ export interface KnightRiderEpisodesDBSchema extends DBSchema {
     indexes: {
       episodeId: number;
       actId: number;
+      summariesEmbedding: Array<Array<number>>;
     };
   };
 }

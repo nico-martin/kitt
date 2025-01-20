@@ -1,10 +1,43 @@
-import WebLlmGemma2_2b from "@utils/llm/webllm/webLlmGemma2_2b.ts";
+import Gemini from "@utils/llm/gemini/Gemini.ts";
 import WebLlmGemma2_9b from "@utils/llm/webllm/webLlmGemma2_9b.ts";
 
 import { Act, Episode, Scene } from "../db/types.ts";
 import splitTextIntoChunks from "./splitTextIntoChunks.ts";
 
-const llm = WebLlmGemma2_2b;
+const llm = localStorage.getItem("GOOGLE_AI_STUDIO_API_KEY")
+  ? Gemini
+  : WebLlmGemma2_9b;
+
+const cleanUpJsonArray = (text: string): string => {
+  let cleanText = text
+    .replace(/```json\s*([\s\S]*?)```/g, "$1")
+    .replace(/,\s*([}\]])/g, "$1")
+    .trim();
+
+  if (cleanText === "[]") {
+    return cleanText;
+  }
+
+  // remove all line breaks
+  cleanText = cleanText.replace(/\n/g, "");
+
+  // find spaces between the first character ([) and the first double quote and remove them
+  cleanText = cleanText.replace(/\[\s+"/g, '["');
+
+  // find all double quotes followed by a comma and then remove all spaces after that until the next double quote
+  cleanText = cleanText.replace(/",\s+"/g, '","');
+
+  // remove leading [" and trailing "]
+  cleanText = cleanText.replace(/^\["/, "").replace(/"\]$/, "");
+  cleanText = `["${cleanText
+    .split('","')
+    .map((s) => s.replace(/\"/g, '\\"'))
+    .join('","')}"]`;
+
+  cleanText = cleanText.replace(/\\\\"/g, '\\"');
+
+  return cleanText;
+};
 
 const createSummary = async (
   systemPrompt: string,
@@ -23,55 +56,75 @@ const createSummary = async (
   ) {
     return {
       summary: "",
-      outputTokens: summary?.stats?.completion_tokens || 0,
-      inputTokens: summary?.stats?.prompt_tokens || 0,
+      outputTokens: summary?.stats?.outputTokens || 0,
+      inputTokens: summary?.stats?.inputTokens || 0,
     };
   }
   return {
     summary: summary.output,
-    outputTokens: summary?.stats?.completion_tokens || 0,
-    inputTokens: summary?.stats?.prompt_tokens || 0,
+    outputTokens: summary?.stats?.outputTokens || 0,
+    inputTokens: summary?.stats?.inputTokens || 0,
   };
 };
-
-const boundaries = `INSTRUCTIONS:
-- Always include the main characters that are in the scene and what they are doing.
-- Summarize the scene to only one to three sentences.
-- If you don't have enough content to summarise the scene, return {null}.
-- Only return the summary. Do not include the scene text or your thought process.
-- Only play text, no markdown or HTML.
-
-EXAMPLES:
-"Michael is confident he can adapt and learn quickly. He believes he will be able to handle the challenges he faces."
-"Devon is working with Knight to prepare Michael for a dangerous mission. Michael is conflicted about his past and his future."
-"Michael is angry and threatening towards someone. Knight is impressed with Michael's new look and Devon is curious about the resemblance. Devon is confident Michael will be ready to go soon. Michael is conflicted about his past and his future."
-`;
-
-const boundariesEp = `INSTRUCTIONS:
-- Always include the main characters that are in the scene and what they are doing.
-- Summarize the scene to only three to six sentences.
-- If you don't have enough content to summarise the scene, return {null}.
-- Only return the summary. Do not include the scene text or your thought process.
-- Only play text, no markdown or HTML.
-`;
 
 const createSceneSummaryChunk = async (
   text: string
 ): Promise<{
-  summary: string;
+  summaries: Array<string>;
   outputTokens: number;
   inputTokens: number;
 }> => {
   try {
     if (text === "") {
-      return { summary: "", outputTokens: 0, inputTokens: 0 };
+      return { summaries: [], outputTokens: 0, inputTokens: 0 };
     }
-    return await createSummary(
+    const maxPlots = Math.ceil(text.length / 2500);
+    const summaryJSON = await createSummary(
       "You are a helpful AI assistant that summarizes scenes from TV series",
-      `Following is a scene from the TV series Knight Rider.\n\n${boundaries}\n\nSCENE:\n${text}`
+      `Following is a scene from the TV series Knight Rider.
+      
+INSTRUCTIONS:
+Find the main plot lines (maximum ${maxPlots}, if there are less plots it can be less) in this scene and create a summary for each plot line.
+If you don't have enough content to find at least one plot, return {null}
+Each summmary should follow these rules:
+- Always include the main characters that are in the scene and what they are doing.
+- Summarize the plot to only one to two sentences.
+- Only return the summary. Do not include the scene text or your thought process.
+
+OUTPUT FORMAT:
+Return a JSON array with the summaries as strings. Make sure it is valid JSON.
+
+EXAMPLES:
+\`\`\`JSON
+["Michael is confident he can adapt and learn quickly. He believes he will be able to handle the challenges he faces.","Devon is working with Knight to prepare Michael for a dangerous mission. Michael is conflicted about his past and his future."]
+\`\`\`
+
+\`\`\`JSON
+Michael is angry and threatening towards someone. Knight is impressed with Michael's new look and Devon is curious about the resemblance. Devon is confident Michael will be ready to go soon. Michael is conflicted about his past and his future.
+\`\`\`
+
+SCENE:\n${text}`
     );
+    console.log("scene summary", summaryJSON.summary);
+    const cleaned = cleanUpJsonArray(summaryJSON.summary);
+    console.log("scene summary cleaned", cleaned);
+    const summaries = JSON.parse(cleaned);
+
+    if (!Array.isArray(summaries)) {
+      throw new Error("Invalid JSON");
+    }
+    const summaryStrings = summaries.filter((s) => typeof s === "string");
+    if (summaryStrings.length !== summaries.length) {
+      throw new Error("Invalid JSON");
+    }
+    console.log("scene summary", summaries);
+    return {
+      summaries,
+      outputTokens: summaryJSON.outputTokens,
+      inputTokens: summaryJSON.inputTokens,
+    };
   } catch (e) {
-    console.error("scene summary failed for", e);
+    console.error("scene summary failed", e);
     return null;
   }
 };
@@ -88,21 +141,21 @@ export const createSceneSummary = async (
   }
   const maxCharactersPerRequest = 4000 * 2;
   const requestTexts = splitTextIntoChunks(scene.text, maxCharactersPerRequest);
-  const summaries = [];
+  const allSummaries = [];
   let inputTokens = 0;
   let outputTokens = 0;
   for (const text of requestTexts) {
     const {
-      summary,
+      summaries,
       outputTokens: output,
       inputTokens: input,
     } = await createSceneSummaryChunk(text);
-    summaries.push(summary);
+    summaries.map((summary) => allSummaries.push(summary));
     inputTokens += input;
     outputTokens += output;
   }
   return {
-    summaries,
+    summaries: allSummaries,
     outputTokens,
     inputTokens,
   };
@@ -118,7 +171,20 @@ export const createActSummary = async (
     }
     return await createSummary(
       "You are a helpful AI assistant that summarizes acts from TV series",
-      `Following are summaries of scenes from an act from the TV series Knight Rider.\n\n${boundaries}\n\nSCENES:\n${sceneSummaries.join("\n\n")}`
+      `Following are summaries of scenes from an act from the TV series Knight Rider.
+
+INSTRUCTIONS:
+- Always include the main characters that are in the scene and what they are doing.
+- Summarize the scene to only one to three sentences.
+- Only return the summary. Do not include the scene text or your thought process.
+- Only play text, no markdown or HTML.
+
+EXAMPLES:
+"Michael is confident he can adapt and learn quickly. He believes he will be able to handle the challenges he faces."
+"Devon is working with Knight to prepare Michael for a dangerous mission. Michael is conflicted about his past and his future."
+"Michael is angry and threatening towards someone. Knight is impressed with Michael's new look and Devon is curious about the resemblance. Devon is confident Michael will be ready to go soon. Michael is conflicted about his past and his future."
+
+SCENES:\n${sceneSummaries.join("\n\n")}`
     );
   } catch (e) {
     console.error("act summary failed for", act.id, e);
@@ -136,7 +202,21 @@ export const createEpisodeSummary = async (
     }
     return await createSummary(
       "You are a helpful AI assistant that summarizes episodes from TV series",
-      `Following are summaries of acts from an episode from the TV series Knight Rider.\n\n${boundariesEp}\n\nACTS:\n${actSummaries.join("\n\n")}`
+      `Following are summaries of acts from an episode from the TV series Knight Rider.
+
+INSTRUCTIONS:
+- Always include the main characters that are in the Episode and what they are doing.
+- Summarize the Episode to only three to six sentences.
+- Only return the summary. Do not include the scene text or your thought process.
+- Only play text, no markdown or HTML.
+
+EXAMPLES:
+"Michael is confident he can adapt and learn quickly. He believes he will be able to handle the challenges he faces."
+"Devon is working with Knight to prepare Michael for a dangerous mission. Michael is conflicted about his past and his future."
+"Michael is angry and threatening towards someone. Knight is impressed with Michael's new look and Devon is curious about the resemblance. Devon is confident Michael will be ready to go soon. Michael is conflicted about his past and his future."
+
+ACTS:
+${actSummaries.join("\n\n")}`
     );
   } catch (e) {
     console.error("episode summary failed for", episode.id, e);

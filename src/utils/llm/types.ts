@@ -5,11 +5,24 @@ export enum LlmStatus {
   ERROR = "error",
 }
 
-type CreateConversation = (systemPrompt: string) => {
-  generate: (
-    input: string,
-    callback?: (partialAnswer: string) => void
-  ) => Promise<string>;
+export interface GenerateReturn {
+  output: string;
+  stats?: {
+    outputTokens: number;
+    inputTokens: number;
+  };
+}
+
+export type GenerateFn = (
+  prompt: string,
+  callback?: (answer: GenerateReturn) => void
+) => Promise<GenerateReturn>;
+
+type CreateConversation = (
+  systemPrompt: string,
+  temperature?: number
+) => {
+  generate: GenerateFn;
 };
 
 export interface LlmContextI {

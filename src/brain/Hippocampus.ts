@@ -98,7 +98,10 @@ class Hippocampus {
           outputTokens += processed.outputTokens;
         }
         sceneSummaries.push(...summaries);
-        const summariesEmbedding = await featureExtraction.generate(summaries);
+        const summariesEmbedding =
+          summaries.length > 0
+            ? await featureExtraction.generate(summaries)
+            : [];
         log(
           `Processed scene ${scene.sceneNumber} from act ${act.actNumber} from episode ${episode.episodeNumber}`
         );
@@ -126,6 +129,7 @@ class Hippocampus {
         summaryEmbedding,
       });
     }
+    if (signal && signal.aborted) return;
     let episodeSummary = useCache ? episode.summary : null;
     if (!episodeSummary) {
       const processed = await createEpisodeSummary(episode, actSummaries);

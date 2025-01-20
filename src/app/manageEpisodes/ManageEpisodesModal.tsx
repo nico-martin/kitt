@@ -41,13 +41,14 @@ const ManageEpisodesModal: React.FC<{
   const [processInProgress, setProcessInProgress] =
     React.useState<boolean>(false);
   const [activeEpisode, setActiveEpisode] = React.useState<Ep>(null);
+  const selectRef = React.useRef<HTMLSelectElement>(null);
 
   const fetchActiveEpisode = async (episodeId: number) => {
     const ep = await EpisodesDB.getEpisode(episodeId);
     const acts = await EpisodesDB.getActsByEpisode(episodeId);
     const result: Ep = {
       id: ep.id,
-      title: ep.title,
+      title: `${ep.seasonNumber}-${ep.episodeNumber} - ${ep.title}`,
       summary: ep.summary || "",
       inputTokens: ep.summaryInputTokens || 0,
       outputTokens: ep.summaryOutputTokens || 0,
@@ -62,7 +63,7 @@ const ManageEpisodesModal: React.FC<{
         scenes.push({
           title: `${act.actNumber}-${scene.sceneNumber} (${scene.text.length})`,
           text: scene.text || "",
-          summary: scene?.summaries?.join("---\n") || "",
+          summary: scene?.summaries?.join("\n---\n") || "",
         });
       }
       result.acts.push({
@@ -92,6 +93,17 @@ const ManageEpisodesModal: React.FC<{
   React.useEffect(() => {
     load();
   }, []);
+
+  const processEpisode = async (episodeId: number, signal: AbortSignal) => {
+    setProcessInProgress(true);
+    await Hippocampus.processMemories(
+      episodeId,
+      (entry) => console.log(entry),
+      signal,
+      false
+    );
+    setProcessInProgress(false);
+  };
   return (
     <Modal
       show={show}
@@ -107,6 +119,7 @@ const ManageEpisodesModal: React.FC<{
       <div className={styles.searchEpisode}>
         <label htmlFor="selectEpisode">Select episode:</label>
         <select
+          ref={selectRef}
           id="selectEpisode"
           onChange={(e) => fetchActiveEpisode(Number(e.target.value))}
         >
@@ -127,16 +140,40 @@ const ManageEpisodesModal: React.FC<{
             <Button
               disabled={processInProgress}
               onClick={async () => {
-                setProcessInProgress(true);
+                let episodeId = activeEpisode.id;
                 abortController = new AbortController();
-                await Hippocampus.processMemories(
-                  activeEpisode.id,
-                  (entry) => console.log(entry),
-                  abortController.signal,
-                  false
-                );
-                setProcessInProgress(false);
-                await fetchActiveEpisode(activeEpisode.id);
+                while (episodeId && !abortController.signal.aborted) {
+                  selectRef.current.value = episodeId.toString();
+                  await fetchActiveEpisode(episodeId);
+                  try {
+                    await processEpisode(episodeId, abortController.signal);
+                    if (abortController.signal.aborted) continue;
+                    const episodeIndex = episodes.findIndex(
+                      (e) => e.id === episodeId
+                    );
+                    console.log("------------------");
+                    console.log("------------------");
+                    console.log("------------------");
+                    console.log("------------------");
+                    console.log("------------------");
+                    console.log(
+                      "DONE WITH",
+                      episodes[episodeIndex].seasonNumber,
+                      episodes[episodeIndex].title
+                    );
+                    const nextEpisode = episodes[episodeIndex + 1];
+                    console.log("NEXT", nextEpisode?.id);
+                    console.log("------------------");
+                    console.log("------------------");
+                    console.log("------------------");
+                    console.log("------------------");
+                    console.log("------------------");
+                    episodeId = nextEpisode?.id;
+                  } catch (e) {
+                    console.error(e);
+                    console.log("RETRY", episodeId);
+                  }
+                }
               }}
             >
               process Memories

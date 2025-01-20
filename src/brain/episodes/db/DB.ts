@@ -1,5 +1,8 @@
 import { IDBPDatabase, openDB } from "idb";
 
+import featureExtraction from "@utils/featureExtraction/FeatureExtraction.ts";
+
+import VectorSearch from "../utils/vectorSearch/VectorSearch.ts";
 import { Act, Episode, KnightRiderEpisodesDBSchema, Scene } from "./types.ts";
 
 const dbName = "knight_rider_episodes";
@@ -33,7 +36,19 @@ class DB {
             });
             scenes.createIndex("episodeId", "episodeId");
             scenes.createIndex("actId", "actId");
+            scenes.createIndex("summariesEmbedding", "summariesEmbedding", {
+              unique: false,
+              multiEntry: true,
+            });
           }
+
+          /*if (oldVersion === 1 && newVersion === 2) {
+            const scenes = transaction.objectStore("scenes");
+            scenes.createIndex("summariesEmbedding", "summariesEmbedding", {
+              unique: false,
+              multiEntry: true,
+            });
+          }*/
         },
       });
     }
@@ -120,6 +135,38 @@ class DB {
   public getScene = async (id: number): Promise<Scene> => {
     const db = await this.getDb();
     return db.get("scenes", id);
+  };
+
+  public findScenes = async (
+    query: string,
+    count: number = 10,
+    embeddingSimilarityThreshold = 0.7
+  ) => {
+    const [queryEmbedding] = await featureExtraction.generate([query]);
+    const vectorSearch = new VectorSearch(queryEmbedding);
+    const db = await this.getDb();
+    const tx = db.transaction("scenes", "readonly");
+    const store = tx.store;
+    const index = store.index("summariesEmbedding");
+
+    const results = [];
+    let cursor = await index.openCursor();
+    while (cursor) {
+      const similarityScore = vectorSearch.calculateSimilarityScore(
+        cursor.key as unknown as Array<number>
+      );
+      if (
+        similarityScore > embeddingSimilarityThreshold &&
+        results.findIndex((r) => r.entry.id === cursor.value.id) === -1
+      ) {
+        results.push({ similarityScore, entry: cursor.value });
+      }
+      cursor = await cursor.continue();
+    }
+
+    return results
+      .sort((a, b) => b.similarityScore - a.similarityScore)
+      .slice(0, count);
   };
 
   public updateScene = async (

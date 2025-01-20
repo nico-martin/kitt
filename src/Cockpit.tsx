@@ -14,6 +14,7 @@ import { VoiceStatus } from "@utils/voice/types.ts";
 import useVoice from "@utils/voice/useVoice.ts";
 
 import styles from "./Cockpit.module.css";
+import { EpisodesDB } from "./brain/episodes/db";
 
 const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
   const { status: transcriberStatus, setup: setupTranscriber } =
@@ -110,7 +111,17 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
           <Button color="yellow" onClick={() => setHippocampusModal(true)}>
             Memories
           </Button>
-          <Button color="yellow" disabled />
+          <Button
+            color="yellow"
+            onClick={async () => {
+              const scenes = await EpisodesDB.findScenes(
+                "Why did the police pulled michael over when he was driving to trans am?"
+              );
+              console.log(scenes);
+            }}
+          >
+            search
+          </Button>
         </div>
       </div>
       {isReady ? (

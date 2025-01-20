@@ -6,16 +6,15 @@ import {
 } from "@mlc-ai/web-llm";
 import { v4 as uuidv4 } from "uuid";
 
+import { GenerateFn, GenerateReturn, LlmFactoryI } from "@utils/llm/types.ts";
 import {
   GenerateCallbackData,
   GenerateCallbackStatus,
-  GenerateFn,
-  GenerateReturn,
 } from "@utils/llm/webllm/types.ts";
 
 import Model from "./models/Model.ts";
 
-class WebLlm extends EventTarget {
+class WebLlm extends EventTarget implements LlmFactoryI {
   private engine: WebWorkerMLCEngine = null;
   private queueInProgress = false;
   private model: Model = null;
@@ -174,9 +173,21 @@ class WebLlm extends EventTarget {
           const removeListener = this.onGenerateUpdate(
             requestID,
             (data: GenerateCallbackData) => {
-              callback(data);
+              callback({
+                output: data.output,
+                stats: {
+                  outputTokens: data.stats?.completion_tokens || 0,
+                  inputTokens: data.stats?.prompt_tokens || 0,
+                },
+              });
               if (data.status === "DONE") {
-                resolve(data);
+                resolve({
+                  output: data.output,
+                  stats: {
+                    outputTokens: data.stats?.completion_tokens || 0,
+                    inputTokens: data.stats?.prompt_tokens || 0,
+                  },
+                });
                 removeListener();
               }
               if (data.status === "ERROR") {
