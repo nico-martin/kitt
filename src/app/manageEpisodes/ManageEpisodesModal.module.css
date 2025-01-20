@@ -55,7 +55,17 @@
   }
 }
 
-.sceneText {
+.sceneText,
+.actSummary {
   font-size: 0.8rem;
   margin-top: 0.5rem;
+}
+
+.importExport {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #fff;
+  align-items: center;
 }

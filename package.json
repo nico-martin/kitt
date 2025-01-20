@@ -1,6 +1,6 @@
 {
   "name": "kitt",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "main": "src/index.ts",
   "author": "Nico Martin <mail@nico.dev>",

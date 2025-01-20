@@ -13,7 +13,7 @@ class DB {
   public getDb = async () => {
     if (!this.db) {
       this.db = await openDB<KnightRiderEpisodesDBSchema>(dbName, dbVersion, {
-        upgrade(db, oldVersion, newVersion, transaction) {
+        upgrade(db /*, oldVersion, newVersion, transaction*/) {
           if (!db.objectStoreNames.contains("episodes")) {
             db.createObjectStore("episodes", {
               keyPath: "id",
@@ -195,6 +195,42 @@ class DB {
     await db.clear("episodes");
     await db.clear("acts");
     await db.clear("scenes");
+  };
+
+  public export = async () => {
+    const db = await this.getDb();
+
+    const getAll = async (storeName: "scenes" | "episodes" | "acts") => {
+      const tx = db.transaction(storeName, "readonly");
+      return tx.store.getAll();
+    };
+
+    const [episodes, acts, scenes] = await Promise.all([
+      getAll("episodes"),
+      getAll("acts"),
+      getAll("scenes"),
+    ]);
+    return { episodes, acts, scenes };
+  };
+
+  public importDump = async (
+    episodes: Array<Episode>,
+    acts: Array<Act>,
+    scenes: Array<Scene>
+  ) => {
+    await this.clearAll();
+
+    for (const episode of episodes) {
+      await this.addEpisode(episode);
+    }
+
+    for (const act of acts) {
+      await this.addAct(act);
+    }
+
+    for (const scene of scenes) {
+      await this.addScene(scene);
+    }
   };
 }
 

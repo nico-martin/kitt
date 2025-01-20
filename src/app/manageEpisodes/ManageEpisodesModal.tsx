@@ -8,7 +8,7 @@ import { EpisodesDB } from "../../brain/episodes/db";
 import { Episode } from "../../brain/episodes/db/types.ts";
 import styles from "./ManageEpisodesModal.module.css";
 
-let abortController = new AbortController();
+//let abortController = new AbortController();
 
 interface EpScene {
   title: string;
@@ -38,10 +38,14 @@ const ManageEpisodesModal: React.FC<{
   const [actsCount, setActsCount] = React.useState<number>(0);
   const [episodesCount, setEpisodesCount] = React.useState<number>(0);
   const [episodes, setEpisodes] = React.useState<Array<Episode>>([]);
-  const [processInProgress, setProcessInProgress] =
-    React.useState<boolean>(false);
+  /*const [processInProgress, setProcessInProgress] =
+    React.useState<boolean>(false);*/
   const [activeEpisode, setActiveEpisode] = React.useState<Ep>(null);
   const selectRef = React.useRef<HTMLSelectElement>(null);
+  const [exportInProgress, setExportInProgress] =
+    React.useState<boolean>(false);
+  const [importInProgress, setImportInProgress] =
+    React.useState<boolean>(false);
 
   const fetchActiveEpisode = async (episodeId: number) => {
     const ep = await EpisodesDB.getEpisode(episodeId);
@@ -75,26 +79,34 @@ const ManageEpisodesModal: React.FC<{
     setActiveEpisode(result);
   };
 
-  const load = () => {
-    EpisodesDB.getScenesCount().then((count) => {
-      setScenesCount(count);
-    });
-    EpisodesDB.getActsCount().then((count) => {
-      setActsCount(count);
-    });
-    EpisodesDB.getEpisodesCount().then((count) => {
-      setEpisodesCount(count);
-    });
-    EpisodesDB.getEpisodes().then((episodes) => {
-      setEpisodes(episodes);
-    });
+  const load = async () => {
+    const [scenesCount, actsCount, episodesCount, episodes] = await Promise.all(
+      [
+        EpisodesDB.getScenesCount(),
+        EpisodesDB.getActsCount(),
+        EpisodesDB.getEpisodesCount(),
+        EpisodesDB.getEpisodes(),
+      ]
+    );
+    setScenesCount(scenesCount);
+    setActsCount(actsCount);
+    setEpisodesCount(episodesCount);
+    setEpisodes(episodes);
+    console.log(
+      "summary input tokens:",
+      formatNumber(episodes.reduce((acc, e) => acc + e.summaryInputTokens, 0))
+    );
+    console.log(
+      "summary output tokens:",
+      formatNumber(episodes.reduce((acc, e) => acc + e.summaryOutputTokens, 0))
+    );
   };
 
   React.useEffect(() => {
     load();
   }, []);
 
-  const processEpisode = async (episodeId: number, signal: AbortSignal) => {
+  /*const processEpisode = async (episodeId: number, signal: AbortSignal) => {
     setProcessInProgress(true);
     await Hippocampus.processMemories(
       episodeId,
@@ -103,7 +115,7 @@ const ManageEpisodesModal: React.FC<{
       false
     );
     setProcessInProgress(false);
-  };
+  };*/
   return (
     <Modal
       show={show}
@@ -136,7 +148,7 @@ const ManageEpisodesModal: React.FC<{
           <h2 className={styles.activeEpisodeTitle}>
             {activeEpisode.title} (Season: {activeEpisode.season}){" "}
           </h2>
-          <div className={styles.activeEpisodeProcess}>
+          {/*<div className={styles.activeEpisodeProcess}>
             <Button
               disabled={processInProgress}
               onClick={async () => {
@@ -188,7 +200,7 @@ const ManageEpisodesModal: React.FC<{
                 cancel
               </Button>
             )}
-          </div>
+          </div>*/}
           {Boolean(activeEpisode.summary) && (
             <div className={styles.activeEpisodeSummary}>
               <p className={styles.activeEpisodeSummaryTokens}>
@@ -202,7 +214,7 @@ const ManageEpisodesModal: React.FC<{
             {activeEpisode.acts.map((act) => (
               <li className={styles.actElement}>
                 <h3 className={styles.actTitle}>ACT {act.title}</h3>
-                <p>{act.summary}</p>
+                <p className={styles.actSummary}>{act.summary}</p>
                 <ul className={styles.sceneList}>
                   {act.scenes.map((scene) => (
                     <li className={styles.sceneElement}>
@@ -223,16 +235,29 @@ const ManageEpisodesModal: React.FC<{
           </ul>
         </div>
       )}
-      <div>
+      <div className={styles.importExport}>
+        Memory:
         <Button
-          onClick={() =>
-            Hippocampus.rebuildMemory().then(() => {
-              load();
-              setActiveEpisode(null);
-            })
-          }
+          disabled={importInProgress}
+          onClick={async () => {
+            setImportInProgress(true);
+            await Hippocampus.importMemory();
+            await load();
+            setActiveEpisode(null);
+            setImportInProgress(false);
+          }}
         >
-          reload
+          import
+        </Button>
+        <Button
+          disabled={episodes.length === 0 || exportInProgress}
+          onClick={async () => {
+            setExportInProgress(true);
+            await Hippocampus.exportMemory("kittMemory");
+            setExportInProgress(false);
+          }}
+        >
+          export
         </Button>
       </div>
     </Modal>

@@ -10,7 +10,7 @@ import {
 } from "./episodes/utils/summaries.ts";
 
 class Hippocampus {
-  public rebuildMemory = async () => {
+  public rebuildMemoryFromEpisodes = async () => {
     if (
       (await EpisodesDB.getEpisodes()).length &&
       !confirm(
@@ -149,6 +149,33 @@ class Hippocampus {
       summaryInputTokens: inputTokens,
       summaryOutputTokens: outputTokens,
     });
+  };
+
+  public exportMemory = async (fileName: string) => {
+    const data = await EpisodesDB.export();
+    const blob = new Blob([JSON.stringify(data)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${fileName}.json`;
+    a.click();
+  };
+
+  public importMemory = async () => {
+    if (
+      (await EpisodesDB.getEpisodes()).length &&
+      !confirm(
+        "Are you sure you want to reload all episodes? This will empty the whole DB"
+      )
+    ) {
+      return;
+    }
+
+    const memoryResp = await fetch("/episodes-memory.json");
+    const memory = await memoryResp.json();
+    await EpisodesDB.importDump(memory.episodes, memory.acts, memory.scenes);
   };
 
   public getMemory = async (query: string) => {
