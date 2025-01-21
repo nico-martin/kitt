@@ -1,3 +1,5 @@
+import { BrainStatus } from "@brain/types.ts";
+import useBrain from "@brain/useBrain.ts";
 import { Button, Display, Kitt, TextLoader } from "@theme";
 import React from "react";
 
@@ -6,44 +8,28 @@ import Listener from "@app/Listener.tsx";
 import ManageEpisodesModal from "@app/manageEpisodes/ManageEpisodesModal.tsx";
 
 import cn from "@utils/classnames.ts";
-import { LlmStatus } from "@utils/llm/types.ts";
-import useLlm from "@utils/llm/useLlm.ts";
-import { TranscriberStatus } from "@utils/transcriber/types.ts";
-import useTranscriber from "@utils/transcriber/useTranscriber.ts";
-import { VoiceStatus } from "@utils/voice/types.ts";
-import useVoice from "@utils/voice/useVoice.ts";
 
 import styles from "./Cockpit.module.css";
-import { EpisodesDB } from "./brain/episodes/db";
 
 const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
-  const { status: transcriberStatus, setup: setupTranscriber } =
-    useTranscriber();
-  const { talk, status: voiceStatus, setup: setupVoice, volume } = useVoice();
-  const { status: llmStatus, setup: setupLlm } = useLlm();
-  const [llmProgress, setLlmProgress] = React.useState<number>(0);
-  const [hippocampusModal, setHippocampusModal] =
+  const { status: brainStatus, ready: brainReady, brain } = useBrain();
+  const [manageEpisodesModal, setManageEpisodesModal] =
     React.useState<boolean>(false);
+  const [auditoryCortexProgress, setAuditoryCortexProgress] =
+    React.useState<number>(0);
+  const [borcasAreaProgress, setBorcasAreaProgress] = React.useState<number>(0);
+  const [llmProgress, setLlmProgress] = React.useState<number>(0);
 
   const [messages, setMessages] = React.useState<
     Array<string | React.ReactElement>
   >(["Hi there! Ready to start?"]);
 
-  const isReady =
-    transcriberStatus === TranscriberStatus.READY &&
-    voiceStatus === VoiceStatus.READY &&
-    llmStatus === LlmStatus.READY;
-
   React.useEffect(() => {
-    const idle =
-      transcriberStatus === TranscriberStatus.IDLE &&
-      voiceStatus === VoiceStatus.IDLE &&
-      llmStatus === LlmStatus.IDLE;
     setMessages(
-      idle
+      brainStatus === BrainStatus.IDLE
         ? ["Hi there! Ready to start?"]
         : [
-            ...(llmStatus === LlmStatus.READY
+            ...(llmProgress >= 1
               ? [
                   <React.Fragment>
                     <TextLoader done /> brain ready
@@ -55,7 +41,7 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
                     {Math.round(llmProgress * 100)}%
                   </React.Fragment>,
                 ]),
-            ...(transcriberStatus === TranscriberStatus.READY
+            ...(auditoryCortexProgress >= 1
               ? [
                   <React.Fragment>
                     <TextLoader done /> ears ready
@@ -63,10 +49,11 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
                 ]
               : [
                   <React.Fragment>
-                    <TextLoader /> warming up ears
+                    <TextLoader /> warming up ears -{" "}
+                    {Math.round(auditoryCortexProgress * 100)}%
                   </React.Fragment>,
                 ]),
-            ...(voiceStatus === VoiceStatus.READY
+            ...(borcasAreaProgress >= 1
               ? [
                   <React.Fragment>
                     <TextLoader done /> voice ready
@@ -74,25 +61,26 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
                 ]
               : [
                   <React.Fragment>
-                    <TextLoader /> preparing voice
+                    <TextLoader /> preparing voice -{" "}
+                    {Math.round(borcasAreaProgress * 100)}%
                   </React.Fragment>,
                 ]),
           ]
     );
-  }, [transcriberStatus, voiceStatus, llmStatus, llmProgress]);
+  }, [brain.status, auditoryCortexProgress, borcasAreaProgress]);
 
   return (
     <div className={cn(className, styles.root)}>
       <div className={styles.top}>
         <div className={styles.left}>
-          <ConnectCar disabled={!isReady} />
-          <Listener disabled={!isReady} />
+          <ConnectCar disabled={!brainReady} />
+          <Listener disabled={!brainReady} />
           <Button
             disabled={false}
             onClick={() => {
-              talk("Hello World. This is a Test. Lets see if this works.").then(
-                () => console.log("Test")
-              );
+              brain.borcasArea
+                .speak("Hello World. This is a Test. Lets see if this works.")
+                .then(() => console.log("Test"));
             }}
             color="yellow"
           >
@@ -104,37 +92,46 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
           <Button color="yellow" disabled>
             Camera
           </Button>
-          <ManageEpisodesModal
-            show={hippocampusModal}
-            setShow={setHippocampusModal}
-          />
-          <Button color="yellow" onClick={() => setHippocampusModal(true)}>
+          {manageEpisodesModal && (
+            <ManageEpisodesModal
+              show={manageEpisodesModal}
+              setShow={setManageEpisodesModal}
+            />
+          )}
+          <Button color="yellow" onClick={() => setManageEpisodesModal(true)}>
             Memories
           </Button>
           <Button
             color="yellow"
             onClick={async () => {
-              const scenes = await EpisodesDB.findScenes(
-                "Why did the police pulled michael over when he was driving to trans am?"
-              );
-              console.log(scenes);
+              const query =
+                "Hi KITT, Do you remember how Michael avoided trouble when he fell asleep in the car and got pulled over by the police?";
+              //"How did Michael avoid trouble when he fell asleep in the car and got pulled over by the police?";
+
+              console.log(query);
+              const scenes = await brain.hippocampus.getMemory(query);
+
+              scenes.map(({ entry, similarityScore }) => {
+                console.log(similarityScore);
+                console.log((entry?.summaries || []).join("\n---\n"));
+              });
             }}
           >
             search
           </Button>
         </div>
       </div>
-      {isReady ? (
-        <Kitt className={styles.kitt} volume={volume} />
+      {brainReady ? (
+        <Kitt className={styles.kitt} volume={0} />
       ) : (
         <Button
           className={styles.startButton}
           onClick={async () =>
-            await Promise.all([
-              setupLlm((progress) => setLlmProgress(progress)),
-              setupTranscriber(),
-              setupVoice(),
-            ])
+            await brain.wakeUp(
+              (progress) => setAuditoryCortexProgress(progress),
+              (progress) => setBorcasAreaProgress(progress),
+              (progress) => setLlmProgress(progress)
+            )
           }
         >
           Start!

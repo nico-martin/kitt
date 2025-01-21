@@ -1,11 +1,11 @@
+import { EpisodesDB } from "@brain/hippocampus/episodesDB/db";
+import { Episode } from "@brain/hippocampus/episodesDB/db/types.ts";
+import useBrain from "@brain/useBrain.ts";
 import { Button, Modal } from "@theme";
 import React from "react";
 
 import { formatNumber, nl2br } from "@utils/formatters";
 
-import Hippocampus from "../../brain/Hippocampus.ts";
-import { EpisodesDB } from "../../brain/episodes/db";
-import { Episode } from "../../brain/episodes/db/types.ts";
 import styles from "./ManageEpisodesModal.module.css";
 
 //let abortController = new AbortController();
@@ -34,6 +34,7 @@ const ManageEpisodesModal: React.FC<{
   show: boolean;
   setShow: (show: boolean) => void;
 }> = ({ show, setShow }) => {
+  const { brain } = useBrain();
   const [scenesCount, setScenesCount] = React.useState<number>(0);
   const [actsCount, setActsCount] = React.useState<number>(0);
   const [episodesCount, setEpisodesCount] = React.useState<number>(0);
@@ -216,8 +217,8 @@ const ManageEpisodesModal: React.FC<{
                 <h3 className={styles.actTitle}>ACT {act.title}</h3>
                 <p className={styles.actSummary}>{act.summary}</p>
                 <ul className={styles.sceneList}>
-                  {act.scenes.map((scene) => (
-                    <li className={styles.sceneElement}>
+                  {act.scenes.map((scene, i) => (
+                    <li key={i} className={styles.sceneElement}>
                       <h4 className={styles.sceneTitle}>SCENE {scene.title}</h4>
                       <p
                         className={styles.sceneText}
@@ -241,7 +242,7 @@ const ManageEpisodesModal: React.FC<{
           disabled={importInProgress}
           onClick={async () => {
             setImportInProgress(true);
-            await Hippocampus.importMemory();
+            await brain.hippocampus.importMemory();
             await load();
             setActiveEpisode(null);
             setImportInProgress(false);
@@ -253,7 +254,7 @@ const ManageEpisodesModal: React.FC<{
           disabled={episodes.length === 0 || exportInProgress}
           onClick={async () => {
             setExportInProgress(true);
-            await Hippocampus.exportMemory("kittMemory");
+            await brain.hippocampus.exportMemory("kittMemory");
             setExportInProgress(false);
           }}
         >

@@ -1,8 +1,8 @@
+import { BrainStatus } from "@brain/types.ts";
+import useBrain from "@brain/useBrain.ts";
 import { Button } from "@theme";
 import React from "react";
 
-import { BrainStatus } from "@utils/brain/types.ts";
-import useBrain from "@utils/brain/useBrain.ts";
 import cn from "@utils/classnames.ts";
 
 const Listener: React.FC<{ className?: string; disabled: boolean }> = ({

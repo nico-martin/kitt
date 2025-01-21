@@ -1,15 +1,17 @@
+import ScreenplayParser from "@nico-martin/screenplay-parser";
+
 import featureExtraction from "@utils/featureExtraction/FeatureExtraction.ts";
 
-import ScreenplayParser from "../utils/screenplayParser/ScreenplayParser.ts";
-import { EpisodesDB } from "./episodes/db";
-import fetchScreenplay from "./episodes/utils/fetchScreenplay.ts";
+import { EpisodesDB } from "./episodesDB/db";
+import fetchScreenplay from "./episodesDB/utils/fetchScreenplay.ts";
 import {
   createActSummary,
   createEpisodeSummary,
   createSceneSummary,
-} from "./episodes/utils/summaries.ts";
+} from "./episodesDB/utils/summaries.ts";
+import { HippocampusFactory } from "./types.ts";
 
-class Hippocampus {
+class Hippocampus implements HippocampusFactory {
   public rebuildMemoryFromEpisodes = async () => {
     if (
       (await EpisodesDB.getEpisodes()).length &&
@@ -178,9 +180,7 @@ class Hippocampus {
     await EpisodesDB.importDump(memory.episodes, memory.acts, memory.scenes);
   };
 
-  public getMemory = async (query: string) => {
-    console.log(query);
-  };
+  public getMemory = EpisodesDB.findScenes;
 }
 
-export default new Hippocampus();
+export default Hippocampus;

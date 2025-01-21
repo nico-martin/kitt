@@ -31,6 +31,9 @@
       "@utils/*": [
         "./src/utils/*"
       ],
+      "@brain/*": [
+        "./src/brain/*"
+      ],
       "@store/*": [
         "./src/store/*"
       ]

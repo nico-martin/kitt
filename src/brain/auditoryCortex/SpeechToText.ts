@@ -1,21 +1,28 @@
-class SpeechToText {
+import { AuditoryCortexFactory } from "./types.ts";
+
+class SpeechToText implements AuditoryCortexFactory {
   private recognition: SpeechRecognition;
 
   public start = () => {
     if (this.recognition) {
-      throw new Error('Already started');
+      throw new Error("Already started");
     }
     this.recognition = new webkitSpeechRecognition();
-    this.recognition.lang = 'en-US';
+    this.recognition.lang = "en-US";
     this.recognition.interimResults = false;
     this.recognition.maxAlternatives = 5;
     this.recognition.start();
   };
 
+  public initialize = async (cb) => {
+    cb(1);
+    return true;
+  };
+
   public stop = () =>
     new Promise<string>((resolve) => {
       if (!this.recognition) {
-        throw new Error('Not started');
+        throw new Error("Not started");
       }
       this.recognition.onresult = (event) => {
         resolve(event.results[0][0].transcript);

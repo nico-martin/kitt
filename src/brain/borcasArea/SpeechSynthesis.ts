@@ -1,4 +1,6 @@
-class SpeechSynthesis extends EventTarget {
+import { BorcasAreaFactory } from "./types.ts";
+
+class SpeechSynthesis extends EventTarget implements BorcasAreaFactory {
   private _volume = 1;
   private language = "en-US";
 
@@ -11,10 +13,14 @@ class SpeechSynthesis extends EventTarget {
     this._volume = value;
   }
 
-  public onVolumeChanged = (callback: (volume: number) => void) => {
-    const listener = () => callback(this.volume);
+  public onVolumeChange = (callback: (volume: number) => void) => {
+    const listener = () => {
+      callback(this.volume);
+    };
     this.addEventListener("volumeChange", listener);
-    return () => this.removeEventListener("volumeChange", listener);
+    return () => {
+      this.removeEventListener("volumeChange", listener);
+    };
   };
 
   public constructor() {
@@ -26,15 +32,18 @@ class SpeechSynthesis extends EventTarget {
     this.volume = Math.random() * 0.8 + 0.2;
   };
 
-  public setup = async () => {};
+  public initialize = async (cb) => {
+    cb(1);
+    return true;
+  };
 
-  public speak = (text: string, language = this.language): Promise<void> =>
+  public speak = (text: string): Promise<void> =>
     new Promise((resolve) => {
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = language;
+      utterance.lang = this.language;
       const voices = speechSynthesis
         .getVoices()
-        .filter((voice) => voice.lang === language);
+        .filter((voice) => voice.lang === this.language);
       utterance.voice = voices[0];
 
       utterance.onstart = () => {

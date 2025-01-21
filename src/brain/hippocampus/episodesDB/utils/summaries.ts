@@ -1,12 +1,7 @@
-import Gemini from "@utils/llm/gemini/Gemini.ts";
-import WebLlmGemma2_9b from "@utils/llm/webllm/webLlmGemma2_9b.ts";
+import LLM from "@utils/llm/llm.ts";
 
 import { Act, Episode, Scene } from "../db/types.ts";
 import splitTextIntoChunks from "./splitTextIntoChunks.ts";
-
-const llm = localStorage.getItem("GOOGLE_AI_STUDIO_API_KEY")
-  ? Gemini
-  : WebLlmGemma2_9b;
 
 const cleanUpJsonArray = (text: string): string => {
   let cleanText = text
@@ -47,9 +42,9 @@ const createSummary = async (
   outputTokens: number;
   inputTokens: number;
 }> => {
-  const summary = await llm
-    .createConversation(systemPrompt, 0.1)
-    .generate(prompt);
+  const summary = await LLM.createConversation(systemPrompt, 0.1).generate(
+    prompt
+  );
   if (
     summary.output.trim() === "{null}" ||
     summary.output.trim() === '"{null}'

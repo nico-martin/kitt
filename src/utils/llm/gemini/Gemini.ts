@@ -9,7 +9,12 @@ interface MessagePart {
 const API_KEY = localStorage.getItem("GOOGLE_AI_STUDIO_API_KEY");
 
 class Gemini implements LlmFactoryI {
-  public initialize = async (): Promise<boolean> => true;
+  public initialize = async (
+    cb: (progress: number) => void
+  ): Promise<boolean> => {
+    cb(1);
+    return true;
+  };
 
   private postApi = async (
     messages: Array<MessagePart>,

@@ -141,7 +141,7 @@ class DB {
     query: string,
     count: number = 10,
     embeddingSimilarityThreshold = 0.7
-  ) => {
+  ): Promise<Array<{ similarityScore: number; entry: Scene }>> => {
     const [queryEmbedding] = await featureExtraction.generate([query]);
     const vectorSearch = new VectorSearch(queryEmbedding);
     const db = await this.getDb();

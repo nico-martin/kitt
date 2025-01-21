@@ -1,22 +1,12 @@
+import BrainContextProvider from "@brain/BrainContextProvider.tsx";
 import React from "react";
 import { createRoot } from "react-dom/client";
 
-import BrainContextProvider from "@utils/brain/BrainContextProvider.tsx";
 import combineProvider from "@utils/combineProvider.tsx";
-import LlmContextProvider from "@utils/llm/LlmContextProvider.tsx";
-import RouterContextProvider from "@utils/router/RouterContextProvider.tsx";
-import TranscriberContextProvider from "@utils/transcriber/TranscriberContextProvider.tsx";
-import VoiceContextProvider from "@utils/voice/VoiceContextProvider.tsx";
 
 import Cockpit from "./Cockpit.tsx";
 
-const Providers = combineProvider(
-  RouterContextProvider,
-  LlmContextProvider,
-  VoiceContextProvider,
-  TranscriberContextProvider,
-  BrainContextProvider
-);
+const Providers = combineProvider(BrainContextProvider);
 
 const App: React.FC = () => (
   <Providers>
