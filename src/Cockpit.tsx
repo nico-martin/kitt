@@ -113,6 +113,7 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
 
               scenes.map(({ entry, similarityScore }) => {
                 console.log(similarityScore);
+                console.log(entry.episodeId);
                 console.log((entry?.summaries || []).join("\n---\n"));
               });
             }}
@@ -122,7 +123,7 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
         </div>
       </div>
       {brainReady ? (
-        <Kitt className={styles.kitt} volume={0} />
+        <Kitt className={styles.kitt} volume={0.5} />
       ) : (
         <Button
           className={styles.startButton}

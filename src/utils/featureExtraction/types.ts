@@ -12,23 +12,23 @@ export interface WorkerRequest<Input> {
 }
 
 export type InitPipelineProgressEvent = {
-  status: 'loading';
+  status: "loading";
   id: number;
 };
 
 export type PipelineReadyEvent = {
-  status: 'ready';
+  status: "ready";
   id: number;
 };
 
 export type TranscribeErrorEvent = {
-  status: 'error';
+  status: "error";
   error: any;
   id: number;
 };
 
 export type CompleteEvent<Output> = {
-  status: 'complete';
+  status: "complete";
   output: Output;
   id: number;
 };
@@ -40,15 +40,19 @@ export type WorkerResponse<Output = any> =
   | CompleteEvent<Output>;
 
 export enum QueueStatus {
-  ADDED_TO_QUEUE = 'ADDED_TO_QUEUE',
-  PENDING = 'PENDING',
-  ERROR = 'ERROR',
-  DONE = 'DONE',
+  ADDED_TO_QUEUE = "ADDED_TO_QUEUE",
+  PENDING = "PENDING",
+  ERROR = "ERROR",
+  DONE = "DONE",
 }
 
 export interface QueueData {
   output?: FeatureExtractionOutput;
   status: QueueStatus;
-  workerStatus?: WorkerResponseFeatureExtraction['status'];
+  workerStatus?: WorkerResponseFeatureExtraction["status"];
   statusText: string;
+}
+
+export interface FeatureExtractionFactory {
+  generate: (texts: FeatureExtractionInput) => Promise<Array<Array<number>>>;
 }

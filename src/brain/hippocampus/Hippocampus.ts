@@ -1,6 +1,6 @@
 import ScreenplayParser from "@nico-martin/screenplay-parser";
 
-import featureExtraction from "@utils/featureExtraction/FeatureExtraction.ts";
+import featureExtraction from "@utils/featureExtraction";
 
 import { EpisodesDB } from "./episodesDB/db";
 import fetchScreenplay from "./episodesDB/utils/fetchScreenplay.ts";
@@ -151,6 +151,57 @@ class Hippocampus implements HippocampusFactory {
       summaryInputTokens: inputTokens,
       summaryOutputTokens: outputTokens,
     });
+  };
+
+  public regenerateVectorEmbeddings = async (
+    episodeId: number,
+    log: (message?: string) => void = () => {},
+    signal: AbortSignal = null
+  ) => {
+    const episode = await EpisodesDB.getEpisode(episodeId);
+    const acts = await EpisodesDB.getActsByEpisode(episodeId);
+    for (const act of acts) {
+      if (signal && signal.aborted) continue;
+      const scenes = await EpisodesDB.getScenesByAct(act.id);
+      for (const scene of scenes) {
+        if (signal && signal.aborted) continue;
+        const summaries = scene.summaries || [];
+        const summariesEmbedding =
+          summaries.length > 0
+            ? await featureExtraction.generate(summaries)
+            : [];
+        log(
+          `Processed scene ${scene.sceneNumber} from act ${act.actNumber} from episode ${episode.episodeNumber}`
+        );
+        console.log(summariesEmbedding);
+        await EpisodesDB.updateScene(scene.id, {
+          summariesEmbedding,
+        });
+      }
+      const actSummary = act.summary || null;
+      if (actSummary) {
+        const [summaryEmbedding] = await featureExtraction.generate([
+          actSummary,
+        ]);
+        log(
+          `Processed act ${act.actNumber} from episode ${episode.episodeNumber}`
+        );
+        await EpisodesDB.updateAct(act.id, {
+          summaryEmbedding,
+        });
+      }
+    }
+    if (signal && signal.aborted) return;
+    const episodeSummary = episode.summary || null;
+    if (episodeSummary) {
+      const [summaryEmbedding] = await featureExtraction.generate([
+        episodeSummary,
+      ]);
+      log(`Processed episode ${episode.episodeNumber}`);
+      await EpisodesDB.updateEpisode(episode.id, {
+        summaryEmbedding,
+      });
+    }
   };
 
   public exportMemory = async (fileName: string) => {

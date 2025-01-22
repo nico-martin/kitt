@@ -1,12 +1,16 @@
 import {
+  FeatureExtractionFactory,
   FeatureExtractionInput,
   FeatureExtractionOutput,
   QueueData,
   QueueStatus,
   WorkerResponseFeatureExtraction,
-} from './types.ts';
+} from "./types.ts";
 
-class FeatureExtraction extends EventTarget {
+class FeatureExtractionTFJS
+  extends EventTarget
+  implements FeatureExtractionFactory
+{
   private worker: Worker;
   private logger: (data: any) => any;
   private queue: Array<{ id: number; texts: FeatureExtractionInput }> = [];
@@ -16,8 +20,8 @@ class FeatureExtraction extends EventTarget {
   constructor(logCallback: (data: any) => any = () => {}) {
     super();
 
-    this.worker = new Worker(new URL('./worker.ts', import.meta.url), {
-      type: 'module',
+    this.worker = new Worker(new URL("./worker.ts", import.meta.url), {
+      type: "module",
     });
 
     if (logCallback) {
@@ -34,28 +38,28 @@ class FeatureExtraction extends EventTarget {
       this.worker.postMessage({ input: texts, id, log: false });
       const listener = (e: MessageEvent<WorkerResponseFeatureExtraction>) => {
         if (e.data.id !== id) return;
-        if (e.data.status === 'complete') {
-          this.worker.removeEventListener('message', listener);
+        if (e.data.status === "complete") {
+          this.worker.removeEventListener("message", listener);
           resolve(e.data.output);
         }
-        if (e.data.status === 'error') {
-          this.worker.removeEventListener('message', listener);
+        if (e.data.status === "error") {
+          this.worker.removeEventListener("message", listener);
           reject(e.data);
         }
         onMessage(e.data);
       };
 
-      this.worker.addEventListener('message', listener);
+      this.worker.addEventListener("message", listener);
     });
 
   private executeQueue = async () => {
     if (this.queue.length === 0) {
-      this.logger('Queue is empty');
+      this.logger("Queue is empty");
       return;
     }
 
     if (this.queueInProgress) {
-      this.logger('Queue in progress');
+      this.logger("Queue in progress");
       return;
     }
 
@@ -63,7 +67,7 @@ class FeatureExtraction extends EventTarget {
     const activeElement = this.queue.shift();
     this.dispatchQueueUpdate(activeElement.id, {
       status: QueueStatus.PENDING,
-      statusText: 'Pending...',
+      statusText: "Pending...",
     });
 
     try {
@@ -73,13 +77,13 @@ class FeatureExtraction extends EventTarget {
         (workerData) =>
           this.dispatchQueueUpdate(activeElement.id, {
             status: QueueStatus.PENDING,
-            statusText: 'Pending...',
+            statusText: "Pending...",
             workerStatus: workerData.status,
           })
       );
       this.dispatchQueueUpdate(activeElement.id, {
         status: QueueStatus.DONE,
-        statusText: 'done',
+        statusText: "done",
         output,
       });
     } catch (e) {
@@ -136,6 +140,4 @@ class FeatureExtraction extends EventTarget {
     });
 }
 
-const featureExtraction = new FeatureExtraction();
-
-export default featureExtraction;
+export default FeatureExtractionTFJS;

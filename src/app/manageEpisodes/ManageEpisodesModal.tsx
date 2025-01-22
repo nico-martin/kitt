@@ -9,6 +9,7 @@ import { formatNumber, nl2br } from "@utils/formatters";
 import styles from "./ManageEpisodesModal.module.css";
 
 //let abortController = new AbortController();
+//let vectorEmbeddingsAbortController = new AbortController();
 
 interface EpScene {
   title: string;
@@ -47,6 +48,8 @@ const ManageEpisodesModal: React.FC<{
     React.useState<boolean>(false);
   const [importInProgress, setImportInProgress] =
     React.useState<boolean>(false);
+  /*const [vectorEmbeddingsInProgress, setVectorembeddingsInProgress] =
+    React.useState<boolean>(false);*/
 
   const fetchActiveEpisode = async (episodeId: number) => {
     const ep = await EpisodesDB.getEpisode(episodeId);
@@ -261,6 +264,36 @@ const ManageEpisodesModal: React.FC<{
           export
         </Button>
       </div>
+      {/*<div className={styles.importExport}>
+        Vector Embeddings:
+        <Button
+          disabled={vectorEmbeddingsInProgress}
+          onClick={async () => {
+            setVectorembeddingsInProgress(true);
+            vectorEmbeddingsAbortController = new AbortController();
+            for (const episode of episodes) {
+              await brain.hippocampus.regenerateVectorEmbeddings(
+                episode.id,
+                console.log,
+                vectorEmbeddingsAbortController.signal
+              );
+            }
+            setImportInProgress(false);
+          }}
+        >
+          regenerate
+        </Button>
+        {vectorEmbeddingsInProgress && (
+          <Button
+            onClick={() => {
+              vectorEmbeddingsAbortController.abort();
+              setVectorembeddingsInProgress(false);
+            }}
+          >
+            cancel
+          </Button>
+        )}
+      </div>*/}
     </Modal>
   );
 };

@@ -1,6 +1,6 @@
 import { IDBPDatabase, openDB } from "idb";
 
-import featureExtraction from "@utils/featureExtraction/FeatureExtraction.ts";
+import featureExtraction from "@utils/featureExtraction";
 
 import VectorSearch from "../utils/vectorSearch/VectorSearch.ts";
 import { Act, Episode, KnightRiderEpisodesDBSchema, Scene } from "./types.ts";

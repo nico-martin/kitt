@@ -4,7 +4,14 @@ export interface HippocampusFactory {
   rebuildMemoryFromEpisodes: () => Promise<void>;
   processMemories: (
     episodeId: number,
-    log: (message?: string) => void
+    log: (message?: string) => void,
+    signal: AbortSignal,
+    useCache: boolean
+  ) => Promise<void>;
+  regenerateVectorEmbeddings: (
+    episodeId: number,
+    log: (message?: string) => void,
+    signal: AbortSignal
   ) => Promise<void>;
   exportMemory: (fileName: string) => Promise<void>;
   importMemory: () => Promise<void>;
