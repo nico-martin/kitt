@@ -6,7 +6,7 @@ import VectorSearch from "../utils/vectorSearch/VectorSearch.ts";
 import { Act, Episode, KnightRiderEpisodesDBSchema, Scene } from "./types.ts";
 
 const dbName = "knight_rider_episodes";
-const dbVersion = 1;
+const dbVersion = 3;
 
 class DB {
   private db: IDBPDatabase<KnightRiderEpisodesDBSchema>;
@@ -15,10 +15,12 @@ class DB {
       this.db = await openDB<KnightRiderEpisodesDBSchema>(dbName, dbVersion, {
         upgrade(db /*, oldVersion, newVersion, transaction*/) {
           if (!db.objectStoreNames.contains("episodes")) {
-            db.createObjectStore("episodes", {
+            const episodes = db.createObjectStore("episodes", {
               keyPath: "id",
               autoIncrement: true,
             });
+            episodes.createIndex("seasonNumber", "seasonNumber");
+            episodes.createIndex("episodeNumber", "episodeNumber");
           }
 
           if (!db.objectStoreNames.contains("acts")) {
@@ -42,12 +44,11 @@ class DB {
             });
           }
 
-          /*if (oldVersion === 1 && newVersion === 2) {
-            const scenes = transaction.objectStore("scenes");
-            scenes.createIndex("summariesEmbedding", "summariesEmbedding", {
-              unique: false,
-              multiEntry: true,
-            });
+          /*console.log("Upgraded DB from v", oldVersion, "to v", newVersion);
+          if (newVersion === 3) {
+            const episodes = transaction.objectStore("episodes");
+            episodes.createIndex("seasonNumber", "seasonNumber");
+            episodes.createIndex("episodeNumber", "episodeNumber");
           }*/
         },
       });
@@ -139,12 +140,22 @@ class DB {
 
   public findScenes = async (
     query: string,
+    seasonNumber: number = null,
+    episodeNumber: number = null,
     count: number = 10,
     embeddingSimilarityThreshold = 0.7
   ): Promise<Array<{ similarityScore: number; entry: Scene }>> => {
     const [queryEmbedding] = await featureExtraction.generate([query]);
-    const vectorSearch = new VectorSearch(queryEmbedding);
     const db = await this.getDb();
+
+    let episodes = seasonNumber
+      ? await db.getAllFromIndex("episodes", "seasonNumber", seasonNumber)
+      : [];
+    if (episodeNumber && episodes.length > 0) {
+      episodes = episodes.filter((e) => e.episodeNumber === episodeNumber);
+    }
+
+    const vectorSearch = new VectorSearch(queryEmbedding);
     const tx = db.transaction("scenes", "readonly");
     const store = tx.store;
     const index = store.index("summariesEmbedding");
@@ -152,14 +163,19 @@ class DB {
     const results = [];
     let cursor = await index.openCursor();
     while (cursor) {
-      const similarityScore = vectorSearch.calculateSimilarityScore(
-        cursor.key as unknown as Array<number>
-      );
       if (
-        similarityScore > embeddingSimilarityThreshold &&
-        results.findIndex((r) => r.entry.id === cursor.value.id) === -1
+        episodes.length == 0 ||
+        episodes.findIndex((e) => e.id === cursor.value.episodeId) !== -1
       ) {
-        results.push({ similarityScore, entry: cursor.value });
+        const similarityScore = vectorSearch.calculateSimilarityScore(
+          cursor.key as unknown as Array<number>
+        );
+        if (
+          similarityScore > embeddingSimilarityThreshold &&
+          results.findIndex((r) => r.entry.id === cursor.value.id) === -1
+        ) {
+          results.push({ similarityScore, entry: cursor.value });
+        }
       }
       cursor = await cursor.continue();
     }

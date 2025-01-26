@@ -1,3 +1,4 @@
+import { FunctionDefinition } from "@brain/basalGanglia/types.ts";
 import { Scene } from "@brain/hippocampus/episodesDB/db/types.ts";
 
 export interface HippocampusFactory {
@@ -20,4 +21,10 @@ export interface HippocampusFactory {
     count?: number,
     embeddingSimilarityThreshold?: number
   ) => Promise<Array<{ similarityScore: number; entry: Scene }>>;
+  memoryAgentFunction: FunctionDefinition<{
+    question: string;
+    context: string;
+    season: number;
+    episode: number;
+  }>;
 }

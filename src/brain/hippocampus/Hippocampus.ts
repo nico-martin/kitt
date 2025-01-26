@@ -1,6 +1,9 @@
+import { FunctionDefinition } from "@brain/basalGanglia/types.ts";
 import ScreenplayParser from "@nico-martin/screenplay-parser";
 
 import featureExtraction from "@utils/featureExtraction";
+import llm from "@utils/llm/llm.ts";
+import reranker from "@utils/reranker";
 
 import { EpisodesDB } from "./episodesDB/db";
 import fetchScreenplay from "./episodesDB/utils/fetchScreenplay.ts";
@@ -232,6 +235,95 @@ class Hippocampus implements HippocampusFactory {
   };
 
   public getMemory = EpisodesDB.findScenes;
+
+  public memoryAgentFunction: FunctionDefinition<{
+    question: string;
+    episode?: number;
+    season?: number;
+  }> = {
+    name: "searchEpisode",
+    description:
+      "Search through all the Seasons, Episodes and Scenes from the Knight-Ride Series to find relevant information (Memories) to answer the question.",
+    parameters: [
+      {
+        name: "question",
+        type: "string",
+        description:
+          "The exact question the user asked without reference to the season or episode number.",
+        // "The question the user asked. the question may involve direct speech (second person). This needs to be changed to 3rd person and talk about “KIT”: Can you help me? -> Can KITT help me?",
+        required: true,
+      },
+      {
+        name: "season",
+        type: "number",
+        description: "The season number if specified",
+        required: false,
+      },
+      {
+        name: "episode",
+        type: "number",
+        description: "The episode number if specified",
+        required: false,
+      },
+    ],
+    examples: [
+      "Do you remember when the car jumped over the river?",
+      "What was the color of the car that hurt you in season 5?",
+    ],
+    handler: async (data, originalRequest) => {
+      console.log("[searchEpisode] data", data);
+
+      const rephrasedQuestion = (
+        await llm
+          .createConversation(
+            `You are a helpful AI assistant that rephrases questions.`,
+            0.1
+          )
+          .generate(
+            `Rewrite the following question into a form optimized for vector search. If the question contains direct speech, rephrase it in the third person as if the question was directed to KITT. Output only the rewritten question. QUESTION: "${originalRequest}"`
+          )
+      ).output;
+
+      console.log("[searchEpisode] rephrasedQuestion", rephrasedQuestion);
+
+      const results = await this.getMemory(
+        rephrasedQuestion,
+        data.season,
+        data.episode
+      );
+
+      const reranked = await reranker.rerank({
+        compareWith: rephrasedQuestion,
+        texts: results.map((r) => r.entry.summaries.join(" ")),
+      });
+
+      const bestResult = results[reranked[0].corpus_id].entry;
+
+      console.log("[searchEpisode] bestResult", bestResult);
+
+      const episode = await EpisodesDB.getEpisode(bestResult.episodeId);
+      return `INSTRUCTIONS:
+DOCUMENT contains parts of the Knight Rider Episode ${episode.episodeNumber} "${episode.title}" from season ${episode.seasonNumber}
+Answer the users QUESTION using the DOCUMENT text below.
+Phrase the answer as if you were KITT and reminiscing with michael. Keep your answer short and to the point.
+Not meta information about what you are doing, but just your answer.
+
+EXAMPLES:
+question: "Do you remember in season 4 why we jumped over the river?"
+answer: "Yes, I remember. That must have been episode 7. We did that to catch the thief, right? It was a thrilling moment."
+
+question: "What was the thiefs weapon when we investigated the robbery in season 4?"
+answer: "Uh, good question. I think it was a knife, wasn't it?"
+
+
+DOCUMENT:
+Episode summary:\n${episode.summary}
+Scene: ${bestResult.summaries.map((s) => `\n${s}`).join("\n\n")}
+
+QUESTION: "${originalRequest}"
+`;
+    },
+  };
 }
 
 export default Hippocampus;

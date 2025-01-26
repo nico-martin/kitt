@@ -4,6 +4,10 @@ export interface KnightRiderEpisodesDBSchema extends DBSchema {
   episodes: {
     key: number;
     value: Episode;
+    indexes: {
+      seasonNumber: number;
+      episodeNumber: number;
+    };
   };
   acts: {
     key: number;

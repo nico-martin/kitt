@@ -18,6 +18,7 @@ class Brain extends EventTarget {
 
   public constructor() {
     super();
+    this.basalGanglia.addFunction(this.hippocampus.memoryAgentFunction);
   }
 
   public get status(): BrainStatus {
@@ -94,7 +95,8 @@ class Brain extends EventTarget {
         this.status = BrainStatus.THINKING;
         listener.end().then(async (text) => {
           this.status = BrainStatus.SPEAKING;
-          await this.borcasArea.speak(text);
+          const response = await this.basalGanglia.evaluateNextStep(text);
+          await this.borcasArea.speak(response);
           this.status = BrainStatus.READY;
         });
       }
@@ -107,6 +109,19 @@ class Brain extends EventTarget {
       document.removeEventListener("keydown", keydown);
       document.removeEventListener("keyup", keyup);
     };
+  };
+
+  public processQuery = async (query: string) => {
+    if (this.status === BrainStatus.IDLE) {
+      await this.wakeUp(
+        () => {},
+        () => {},
+        () => {}
+      );
+    }
+
+    const response = await this.basalGanglia.evaluateNextStep(query);
+    console.log(response);
   };
 }
 
