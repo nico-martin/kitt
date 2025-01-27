@@ -1,7 +1,7 @@
+import Whisper from "@brain/auditoryCortex/whisper/Whisper.ts";
 import BasalGanglia from "@brain/basalGanglia/BasalGanglia.ts";
 import { BasalGangliaFactory } from "@brain/basalGanglia/types.ts";
 
-import SpeechToText from "./auditoryCortex/SpeechToText.ts";
 import { AuditoryCortexFactory, Listener } from "./auditoryCortex/types.ts";
 import SpeechSynthesis from "./borcasArea/SpeechSynthesis.ts";
 import { BorcasAreaFactory } from "./borcasArea/types.ts";
@@ -11,7 +11,7 @@ import { BrainStatus } from "./types.ts";
 
 class Brain extends EventTarget {
   private _status: BrainStatus = BrainStatus.IDLE;
-  public auditoryCortex: AuditoryCortexFactory = new SpeechToText();
+  public auditoryCortex: AuditoryCortexFactory = new Whisper(console.log);
   public borcasArea: BorcasAreaFactory = new SpeechSynthesis();
   public hippocampus: HippocampusFactory = new Hippocampus();
   public basalGanglia: BasalGangliaFactory = new BasalGanglia();
@@ -94,6 +94,10 @@ class Brain extends EventTarget {
         isSpacePressed = false;
         this.status = BrainStatus.THINKING;
         listener.end().then(async (text) => {
+          if (!text) {
+            this.status = BrainStatus.READY;
+            return;
+          }
           this.status = BrainStatus.SPEAKING;
           const response = await this.basalGanglia.evaluateNextStep(text);
           await this.borcasArea.speak(response);

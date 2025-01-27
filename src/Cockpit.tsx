@@ -6,9 +6,9 @@ import React from "react";
 import ConnectCar from "@app/ConnectCar.tsx";
 import Listener from "@app/Listener.tsx";
 import ManageEpisodesModal from "@app/manageEpisodes/ManageEpisodesModal.tsx";
+import SettingsModal from "@app/settings/SettingsModal.tsx";
 
 import cn from "@utils/classnames.ts";
-import reranker from "@utils/reranker";
 
 import styles from "./Cockpit.module.css";
 
@@ -16,10 +16,28 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
   const { status: brainStatus, ready: brainReady, brain } = useBrain();
   const [manageEpisodesModal, setManageEpisodesModal] =
     React.useState<boolean>(false);
+  const [settingsModal, setSettingsModal] = React.useState<boolean>(false);
   const [auditoryCortexProgress, setAuditoryCortexProgress] =
     React.useState<number>(0);
   const [borcasAreaProgress, setBorcasAreaProgress] = React.useState<number>(0);
   const [llmProgress, setLlmProgress] = React.useState<number>(0);
+  const [audioDevices, setAudioDevices] = React.useState<
+    Array<MediaDeviceInfo>
+  >([]);
+
+  const setupAudioDevices = async () => {
+    await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const audioDevices = devices.filter(
+      (device) => device.kind === "audioinput"
+    );
+    setAudioDevices(audioDevices);
+  };
+
+  React.useEffect(() => {
+    setupAudioDevices();
+  }, []);
 
   const [messages, setMessages] = React.useState<
     Array<string | React.ReactElement>
@@ -82,8 +100,19 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
         </div>
         <Display className={styles.display} messages={messages} />
         <div className={styles.right}>
-          <Button color="yellow" disabled>
-            Camera
+          {settingsModal && (
+            <SettingsModal
+              show={settingsModal}
+              setShow={setSettingsModal}
+              audioDevices={audioDevices}
+            />
+          )}
+          <Button
+            color="yellow"
+            disabled={audioDevices.length === 0}
+            onClick={() => setSettingsModal(true)}
+          >
+            Settings
           </Button>
           {manageEpisodesModal && (
             <ManageEpisodesModal

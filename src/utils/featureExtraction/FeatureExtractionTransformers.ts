@@ -7,7 +7,7 @@ import {
   WorkerResponseFeatureExtraction,
 } from "./types.ts";
 
-class FeatureExtractionTFJS
+class FeatureExtractionTransformers
   extends EventTarget
   implements FeatureExtractionFactory
 {
@@ -140,4 +140,4 @@ class FeatureExtractionTFJS
     });
 }
 
-export default FeatureExtractionTFJS;
+export default FeatureExtractionTransformers;

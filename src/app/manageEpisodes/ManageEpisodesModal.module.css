@@ -7,15 +7,6 @@
 .meta {
 }
 
-.searchEpisode {
-  display: flex;
-  gap: 1rem;
-
-  label {
-    white-space: nowrap;
-  }
-}
-
 .activeEpisode {
   margin-top: 2rem;
 }

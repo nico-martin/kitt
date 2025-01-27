@@ -1,0 +1,28 @@
+.input {
+  border-radius: 4px;
+  box-sizing: border-box;
+  height: 2.4em;
+  padding: 0.8em 0.4em;
+  //background-color: var(--c-form-field-bkg);
+  width: 100%;
+  border: 1px solid var(--c-form-field-border);
+
+  &:focus {
+  }
+
+  &[disabled] {
+    //background-color: var(--c-form-field-disabled-bkg);
+    cursor: not-allowed;
+    color: var(--c-p-light);
+  }
+}
+
+.textarea {
+  height: auto;
+  font-size: var(--fs-small);
+}
+
+.select {
+  padding-top: 0;
+  padding-bottom: 0;
+}

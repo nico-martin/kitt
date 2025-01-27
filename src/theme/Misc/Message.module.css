@@ -1,0 +1,44 @@
+.root {
+  --c-message-main: var(--c-feedback);
+  --c-message-color: #000;
+  position: relative;
+  display: flex;
+  gap: var(--spacing-small);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-small);
+  border: 1px solid var(--c-message-main);
+}
+
+.typeError {
+  --c-message-main: var(--c-feedback-error);
+}
+
+.typeSuccess {
+  --c-message-main: var(--c-feedback-success);
+}
+
+.icon {
+  font-size: 2rem;
+  position: relative;
+  z-index: 5;
+  color: var(--c-message-main);
+  opacity: 0.5;
+}
+
+.bkg {
+  position: absolute;
+  inset: 0;
+  background-color: var(--c-message-main);
+  opacity: 0.1;
+  border-radius: var(--border-radius);
+}
+
+.content {
+  color: var(--c-message-color);
+  position: relative;
+  z-index: 5;
+
+  & > * + * {
+    margin-top: var(--spacing-small);
+  }
+}

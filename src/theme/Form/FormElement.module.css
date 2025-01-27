@@ -1,0 +1,64 @@
+.root {
+  gap: var(--space);
+
+  display: flex;
+  vertical-align: top;
+
+  &.stacked {
+    flex-direction: column;
+    gap: var(--space-half);
+  }
+
+  &.rootHasError {
+    --c-form-field-border: var(--c-red);
+  }
+
+  &.rootInputSwot {
+    flex-direction: column;
+  }
+}
+
+.labelContainer {
+  flex: 0 1 calc(100% / 3);
+}
+
+.label {
+  display: block;
+  padding-top: 0.6em;
+}
+
+.instructions {
+  padding-top: 0.5em;
+  color: var(--c-p-light);
+  font-size: var(--fs-xsmall);
+}
+
+.instructionsFull {
+  color: var(--c-p-light);
+  font-size: var(--fs-small);
+  white-space: pre-wrap;
+}
+
+.maxLength {
+  padding-top: 0.5em;
+  color: var(--c-p-light);
+  font-size: var(--fs-xsmall);
+}
+
+.content {
+  flex: 1 1 calc(100% / 3 * 2);
+}
+
+.inputContainer {
+  position: relative;
+}
+
+.error {
+  color: var(--c-red);
+  font-size: var(--fs-xsmall) !important;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  transform: translateY(100%);
+  padding-top: 0.25em;
+}

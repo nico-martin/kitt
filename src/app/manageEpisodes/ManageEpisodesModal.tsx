@@ -1,8 +1,9 @@
 import { EpisodesDB } from "@brain/hippocampus/episodesDB/db";
 import { Episode } from "@brain/hippocampus/episodesDB/db/types.ts";
 import useBrain from "@brain/useBrain.ts";
-import { Button, Modal } from "@theme";
+import { Button, Form, FormElement, Modal } from "@theme";
 import React from "react";
+import { FormProvider, useForm } from "react-hook-form";
 
 import { formatNumber, nl2br } from "@utils/formatters";
 
@@ -31,6 +32,10 @@ interface Ep {
   }>;
 }
 
+interface FormValues {
+  episode: string;
+}
+
 const ManageEpisodesModal: React.FC<{
   show: boolean;
   setShow: (show: boolean) => void;
@@ -43,13 +48,23 @@ const ManageEpisodesModal: React.FC<{
   /*const [processInProgress, setProcessInProgress] =
     React.useState<boolean>(false);*/
   const [activeEpisode, setActiveEpisode] = React.useState<Ep>(null);
-  const selectRef = React.useRef<HTMLSelectElement>(null);
   const [exportInProgress, setExportInProgress] =
     React.useState<boolean>(false);
   const [importInProgress, setImportInProgress] =
     React.useState<boolean>(false);
   /*const [vectorEmbeddingsInProgress, setVectorembeddingsInProgress] =
     React.useState<boolean>(false);*/
+
+  const form = useForm<FormValues>({
+    defaultValues: { episode: "" },
+  });
+
+  const episodeForm = form.watch("episode");
+  React.useEffect(() => {
+    if (Number(episodeForm) !== activeEpisode?.id) {
+      fetchActiveEpisode(Number(episodeForm));
+    }
+  }, [episodeForm]);
 
   const fetchActiveEpisode = async (episodeId: number) => {
     const ep = await EpisodesDB.getEpisode(episodeId);
@@ -132,21 +147,27 @@ const ManageEpisodesModal: React.FC<{
         <code>{formatNumber(actsCount)}</code> acts in{" "}
         <code>{formatNumber(episodesCount)}</code> episodes.
       </p>
-      <div className={styles.searchEpisode}>
-        <label htmlFor="selectEpisode">Select episode:</label>
-        <select
-          ref={selectRef}
-          id="selectEpisode"
-          onChange={(e) => fetchActiveEpisode(Number(e.target.value))}
+      <FormProvider {...form}>
+        <Form
+          onSubmit={form.handleSubmit(async (data) => {
+            console.log(data);
+            fetchActiveEpisode(Number(data.episode));
+          })}
         >
-          <option>select..</option>
-          {episodes.map((episode) => (
-            <option key={episode.id} value={episode.id}>
-              {episode.seasonNumber}-{episode.episodeNumber} - {episode.title}
-            </option>
-          ))}
-        </select>
-      </div>
+          <FormElement
+            label="Select episode:"
+            name="episode"
+            type="select"
+            choices={[
+              { value: "", label: "select.." },
+              ...episodes.map((e) => ({
+                value: e.id.toString(),
+                label: `${e.seasonNumber}-${e.episodeNumber} - ${e.title}`,
+              })),
+            ]}
+          />
+        </Form>
+      </FormProvider>
       {activeEpisode && (
         <div className={styles.activeEpisode}>
           <h2 className={styles.activeEpisodeTitle}>

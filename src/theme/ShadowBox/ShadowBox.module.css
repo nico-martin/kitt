@@ -66,7 +66,7 @@
   top: 50%;
   transform: translateX(-50%) translateY(-40%) scale(0.8);
   max-height: calc(100vh - (var(--shadowbox-outer-spacing) * 2));
-  width: 900px;
+  width: 40rem;
   max-width: calc(100vw - (var(--shadowbox-outer-spacing) * 2));
   background-color: var(--shadowbox-bkg);
   will-change: transform;
@@ -89,7 +89,7 @@
 }
 
 .isSmall .box {
-  width: 500px;
+  width: 30rem;
 }
 
 .root[data-visible="true"] {

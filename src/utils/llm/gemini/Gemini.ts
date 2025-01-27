@@ -1,12 +1,13 @@
 import { GeminiResponse } from "@utils/llm/gemini/types.ts";
 import { GenerateFn, GenerateReturn, LlmFactoryI } from "@utils/llm/types.ts";
+import getSetting from "@utils/settings/getSetting.ts";
 
 interface MessagePart {
   role: "user" | "system" | "model";
   content: string;
 }
 
-const API_KEY = localStorage.getItem("GOOGLE_AI_STUDIO_API_KEY");
+const API_KEY = getSetting("geminiApiKey");
 
 class Gemini implements LlmFactoryI {
   public initialize = async (

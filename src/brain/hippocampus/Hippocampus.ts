@@ -291,11 +291,13 @@ class Hippocampus implements HippocampusFactory {
         data.season,
         data.episode
       );
+      console.log("[searchEpisode] getMemory found", results);
 
       const reranked = await reranker.rerank({
         compareWith: rephrasedQuestion,
         texts: results.map((r) => r.entry.summaries.join(" ")),
       });
+      console.log("[searchEpisode] reranked results", reranked);
 
       const bestResult = results[reranked[0].corpus_id].entry;
 
