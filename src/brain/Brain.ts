@@ -1,9 +1,16 @@
-import Whisper from "@brain/auditoryCortex/whisper/Whisper.ts";
-import BasalGanglia from "@brain/basalGanglia/BasalGanglia.ts";
-import { BasalGangliaFactory } from "@brain/basalGanglia/types.ts";
+import {
+  SpeechToTextProvider,
+  TextToSpeechProvider,
+} from "@utils/settings/constants.ts";
+import getSetting from "@utils/settings/getSetting.ts";
 
+import SpeechToText from "./auditoryCortex/SpeechToText.ts";
 import { AuditoryCortexFactory, Listener } from "./auditoryCortex/types.ts";
+import Whisper from "./auditoryCortex/whisper/Whisper.ts";
+import BasalGanglia from "./basalGanglia/BasalGanglia.ts";
+import { BasalGangliaFactory } from "./basalGanglia/types.ts";
 import SpeechSynthesis from "./borcasArea/SpeechSynthesis.ts";
+import Kokoro from "./borcasArea/kokoro/Kokoro.ts";
 import { BorcasAreaFactory } from "./borcasArea/types.ts";
 import Hippocampus from "./hippocampus/Hippocampus.ts";
 import { HippocampusFactory } from "./hippocampus/types.ts";
@@ -11,8 +18,14 @@ import { BrainStatus } from "./types.ts";
 
 class Brain extends EventTarget {
   private _status: BrainStatus = BrainStatus.IDLE;
-  public auditoryCortex: AuditoryCortexFactory = new Whisper(console.log);
-  public borcasArea: BorcasAreaFactory = new SpeechSynthesis();
+  public auditoryCortex: AuditoryCortexFactory =
+    getSetting("speechToTextProvider") === SpeechToTextProvider.WHISPER
+      ? new Whisper()
+      : new SpeechToText();
+  public borcasArea: BorcasAreaFactory =
+    getSetting("textToSpeechProvider") === TextToSpeechProvider.KOKORO
+      ? new Kokoro()
+      : new SpeechSynthesis();
   public hippocampus: HippocampusFactory = new Hippocampus();
   public basalGanglia: BasalGangliaFactory = new BasalGanglia();
 

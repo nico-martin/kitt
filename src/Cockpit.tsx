@@ -1,3 +1,4 @@
+import Kokoro from "@brain/borcasArea/kokoro/Kokoro.ts";
 import { BrainStatus } from "@brain/types.ts";
 import useBrain from "@brain/useBrain.ts";
 import { Button, Display, Kitt, TextLoader } from "@theme";
@@ -126,6 +127,14 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
           <Button
             color="yellow"
             onClick={async () => {
+              const k = new Kokoro();
+              await k.initialize(console.log);
+              k.speak(
+                "The novel 'Moby-Dick' was written by Herman Melville and first published in 1851. Hi there."
+              );
+              k.speak("This should start afterwards");
+
+              return;
               //const query = window.prompt("Enter your query:");
 
               /*console.log("RERANKER");
@@ -170,7 +179,7 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
               });*/
             }}
           >
-            search
+            Kokoro
           </Button>
         </div>
       </div>

@@ -8,7 +8,7 @@ class SpeechSynthesis extends EventTarget implements BorcasAreaFactory {
     return this._volume;
   }
 
-  public set volume(value) {
+  private set volume(value) {
     this.dispatchEvent(new Event("volumeChange"));
     this._volume = value;
   }
@@ -27,7 +27,7 @@ class SpeechSynthesis extends EventTarget implements BorcasAreaFactory {
     super();
   }
 
-  public calculateVolume = () => {
+  private calculateVolume = () => {
     // random number between 0.2 and 1
     this.volume = Math.random() * 0.8 + 0.2;
   };

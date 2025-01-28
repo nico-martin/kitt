@@ -1,12 +1,14 @@
-import LANGUAGES from "@brain/auditoryCortex/whisper/languages.ts";
 import { Button, Form, FormElement, ShadowBoxSize } from "@theme";
 import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
 import {
+  LANGUAGES,
   LLM_NAMES,
   LlmProvider,
   SettingsFormValues,
+  SpeechToTextProvider,
+  TextToSpeechProvider,
 } from "@utils/settings/constants.ts";
 import getSetting from "@utils/settings/getSetting.ts";
 import setSetting from "@utils/settings/setSetting.ts";
@@ -23,8 +25,10 @@ const SettingsModal: React.FC<{
     defaultValues: {
       geminiApiKey: getSetting("geminiApiKey"),
       llmProvider: getSetting("llmProvider"),
+      speechToTextProvider: getSetting("speechToTextProvider"),
       speechToTextLanguage: getSetting("speechToTextLanguage"),
       audioInputDeviceId: getSetting("audioInputDeviceId"),
+      textToSpeechProvider: getSetting("textToSpeechProvider"),
     },
   });
 
@@ -64,10 +68,22 @@ const SettingsModal: React.FC<{
           <br />
           <h4>Speech recognition</h4>
           <FormElement
+            label="Speech recognition"
+            name="speechToTextProvider"
+            type="select"
+            choices={Object.entries(SpeechToTextProvider).map(([, label]) => ({
+              value: label,
+              label: label,
+            }))}
+          />
+          <FormElement
             label="Language"
             name="speechToTextLanguage"
             type="select"
-            choices={LANGUAGES}
+            choices={LANGUAGES.map((language) => ({
+              value: language.lang,
+              label: language.label,
+            }))}
           />
           <FormElement
             label="Input Device"
@@ -80,6 +96,17 @@ const SettingsModal: React.FC<{
                 label: device.label,
               })),
             ]}
+          />
+          <br />
+          <h4>Text to Speech</h4>
+          <FormElement
+            label="Text to speech"
+            name="textToSpeechProvider"
+            type="select"
+            choices={Object.entries(TextToSpeechProvider).map(([, label]) => ({
+              value: label,
+              label: label,
+            }))}
           />
           <br />
           <hr style={{ width: "100%" }} />

@@ -1,3 +1,6 @@
+import { LANGUAGES } from "@utils/settings/constants.ts";
+import getSetting from "@utils/settings/getSetting.ts";
+
 import { AuditoryCortexFactory } from "./types.ts";
 
 class SpeechToText implements AuditoryCortexFactory {
@@ -8,7 +11,9 @@ class SpeechToText implements AuditoryCortexFactory {
       throw new Error("Already started");
     }
     this.recognition = new webkitSpeechRecognition();
-    this.recognition.lang = "en-US";
+    const languageSetting = getSetting("speechToTextLanguage");
+    this.recognition.lang =
+      LANGUAGES.find((l) => l.lang === languageSetting)?.locale || "en-US";
     this.recognition.interimResults = false;
     this.recognition.maxAlternatives = 5;
     this.recognition.start();

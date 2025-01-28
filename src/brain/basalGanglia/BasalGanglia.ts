@@ -1,6 +1,7 @@
 import { evaluateNextStepSystemPrompt } from "@brain/basalGanglia/prompts.ts";
 
 import cleanUpJsonObject from "@utils/cleanUpJsonObject.ts";
+import answerAsKitt from "@utils/llm/answerAsKitt.ts";
 import LLM from "@utils/llm/llm.ts";
 
 import {
@@ -23,7 +24,7 @@ class BasalGanglia implements BasalGangliaFactory {
 
   public evaluateNextStep = async (request: string): Promise<string> => {
     console.log("[functionCall] EVALUATING REQUEST");
-    console.log(request);
+    console.log("[functionCall] REQUEST:", request);
     const conversation = this.llm.createConversation(
       evaluateNextStepSystemPrompt(this.functions),
       0.1
@@ -39,6 +40,10 @@ class BasalGanglia implements BasalGangliaFactory {
       (func) => func.name === responseCall.functionName
     );
 
+    if (!matchedFunction) {
+      return await answerAsKitt(request);
+    }
+
     const callResult = await matchedFunction.handler(
       responseCall.parameters,
       request
@@ -47,6 +52,12 @@ class BasalGanglia implements BasalGangliaFactory {
     console.log("[functionCall] CALL RESULT");
     console.log(callResult);
 
+    const finalAnswer = await answerAsKitt(request);
+    console.log("FINAL ANSWER");
+    console.log(finalAnswer);
+    return finalAnswer;
+
+    /**
     const newConversation = this.llm.createConversation(
       "You are a helpful AI assistant",
       1
@@ -56,7 +67,7 @@ class BasalGanglia implements BasalGangliaFactory {
 
     console.log("FINAL ANSWER");
     console.log(finalAnswer);
-    return finalAnswer;
+    return finalAnswer;**/
   };
 }
 

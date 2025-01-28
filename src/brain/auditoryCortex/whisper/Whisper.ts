@@ -1,3 +1,5 @@
+import WHISPER_LANGUAGES from "@brain/auditoryCortex/whisper/languages.ts";
+
 import getSetting from "@utils/settings/getSetting.ts";
 
 import { AuditoryCortexFactory } from "../types.ts";
@@ -162,6 +164,8 @@ class Whisper extends EventTarget implements AuditoryCortexFactory {
         : true,
     });
 
+    console.log("stream", { deviceId: getSetting("audioInputDeviceId") });
+
     this.recorder = new MediaRecorder(this.stream);
     this.audioContext = new AudioContext({ sampleRate: 16000 });
 
@@ -171,8 +175,6 @@ class Whisper extends EventTarget implements AuditoryCortexFactory {
     };
 
     this.recorder.ondataavailable = (e) => {
-      console.log("ondataavailable");
-
       if (e.data.size > 0) {
         this.chunks.push(e.data);
       } else {
@@ -192,7 +194,9 @@ class Whisper extends EventTarget implements AuditoryCortexFactory {
       const listener = () => resolve(this.chunks);
       this.recorder.addEventListener("stop", listener);
       this.recorder.stop();
-      this.recorder.removeEventListener("stop", listener);
+      window.setTimeout(() => {
+        this.recorder.removeEventListener("stop", listener);
+      }, 1000);
     });
 
   public start = () => {
@@ -206,10 +210,13 @@ class Whisper extends EventTarget implements AuditoryCortexFactory {
       this.recorder.mimeType,
       this.audioContext
     );
+    const languageSetting = getSetting("speechToTextLanguage");
+    const language =
+      WHISPER_LANGUAGES.find((l) => l.value === languageSetting)?.value || "en";
     const output = await this.transcribe({
       audio:
         audio.length > this.cutAudioAt ? audio.slice(this.cutAudioAt) : audio,
-      language: getSetting("speechToTextLanguage"),
+      language,
     });
     this.cutAudioAt = audio.length;
     return output.trim();
