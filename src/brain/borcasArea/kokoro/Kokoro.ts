@@ -11,6 +11,8 @@ import {
 
 const WORKER_LOG = false;
 
+// todo: add volume change
+
 class Kokoro extends EventTarget implements BorcasAreaFactory {
   private _volume = 1;
   private worker: Worker;

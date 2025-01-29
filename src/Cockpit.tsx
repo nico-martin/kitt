@@ -1,4 +1,5 @@
 import Kokoro from "@brain/borcasArea/kokoro/Kokoro.ts";
+import { MotorCortexStatus } from "@brain/motorCortex/types.ts";
 import { BrainStatus } from "@brain/types.ts";
 import useBrain from "@brain/useBrain.ts";
 import { Button, Display, Kitt, TextLoader } from "@theme";
@@ -25,6 +26,10 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
   const [audioDevices, setAudioDevices] = React.useState<
     Array<MediaDeviceInfo>
   >([]);
+  const motorCortexStatus: MotorCortexStatus = React.useSyncExternalStore(
+    (cb) => brain.motorCortext.onStatusChange(cb),
+    () => brain.motorCortext.status
+  );
 
   const setupAudioDevices = async () => {
     await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -85,6 +90,15 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
                     {Math.round(borcasAreaProgress * 100)}%
                   </React.Fragment>,
                 ]),
+            <React.Fragment>
+              <TextLoader
+                done={motorCortexStatus !== MotorCortexStatus.CONNECTING}
+              />{" "}
+              Body{" "}
+              {motorCortexStatus === MotorCortexStatus.CONNECTED
+                ? "connected"
+                : "not connected"}
+            </React.Fragment>,
           ]
     );
   }, [brain.status, auditoryCortexProgress, borcasAreaProgress]);
@@ -93,9 +107,19 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
     <div className={cn(className, styles.root)}>
       <div className={styles.top}>
         <div className={styles.left}>
-          <ConnectCar disabled={!brainReady} />
+          <ConnectCar
+            disabled={!brainReady}
+            connected={motorCortexStatus === MotorCortexStatus.CONNECTED}
+          />
           <Listener disabled={!brainReady} />
-          <Button disabled={true} onClick={() => {}} color="yellow">
+          <Button
+            disabled={motorCortexStatus !== MotorCortexStatus.CONNECTED}
+            onClick={async () => {
+              await brain.motorCortext.changeSpeed(0);
+              await brain.motorCortext.changeTurn(0);
+            }}
+            color="yellow"
+          >
             Stop!
           </Button>
         </div>

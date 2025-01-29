@@ -1,0 +1,6 @@
+export enum MotorCortexStatus {
+  DISCONNECTED = "DISCONNECTED",
+  CONNECTED = "CONNECTED",
+  CONNECTING = "CONNECTING",
+  ERROR = "ERROR",
+}

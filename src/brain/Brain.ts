@@ -14,6 +14,7 @@ import Kokoro from "./borcasArea/kokoro/Kokoro.ts";
 import { BorcasAreaFactory } from "./borcasArea/types.ts";
 import Hippocampus from "./hippocampus/Hippocampus.ts";
 import { HippocampusFactory } from "./hippocampus/types.ts";
+import MotorCortex from "./motorCortex/MotorCortex.ts";
 import { BrainStatus } from "./types.ts";
 
 class Brain extends EventTarget {
@@ -28,6 +29,7 @@ class Brain extends EventTarget {
       : new SpeechSynthesis();
   public hippocampus: HippocampusFactory = new Hippocampus();
   public basalGanglia: BasalGangliaFactory = new BasalGanglia();
+  public motorCortext: MotorCortex = new MotorCortex();
 
   public constructor() {
     super();

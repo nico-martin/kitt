@@ -164,8 +164,6 @@ class Whisper extends EventTarget implements AuditoryCortexFactory {
         : true,
     });
 
-    console.log("stream", { deviceId: getSetting("audioInputDeviceId") });
-
     this.recorder = new MediaRecorder(this.stream);
     this.audioContext = new AudioContext({ sampleRate: 16000 });
 
