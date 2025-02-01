@@ -1,0 +1,46 @@
+.root {
+  color: white;
+  padding: 12px;
+  border-bottom: 1px solid #292929;
+  font-size: 14px;
+
+  &:hover,
+  .details[open] {
+    .modalButton {
+      opacity: 1;
+    }
+  }
+}
+
+.summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  color: white;
+  font: var(--font);
+  width: 100%;
+}
+
+.details {
+}
+
+.detailsContent {
+  padding-top: 12px;
+}
+
+.message + .message {
+  margin-top: 18px;
+}
+
+.messageContent {
+  margin-top: 6px;
+  display: block;
+  padding: 12px;
+  border: 1px solid #777777;
+  border-radius: 6px;
+  background-color: #1b1b1b;
+  color: #bababa;
+  white-space: pre-wrap;
+  font-weight: 100;
+}

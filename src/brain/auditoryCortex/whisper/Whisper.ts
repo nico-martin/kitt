@@ -141,6 +141,7 @@ class Whisper extends EventTarget implements AuditoryCortexFactory {
         ) {
           removeQueueListener();
           if (data.status === QueueStatus.DONE) {
+            console.log("resolve", data.output);
             resolve(data.output);
           } else {
             reject(data);

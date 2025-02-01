@@ -15,12 +15,14 @@ interface FunctionParameter {
   required: boolean;
 }
 
+type FinalPrompt = string;
+
 export interface FunctionDefinition<T = any> {
   name: string;
   description: string;
   parameters: Array<FunctionParameter>;
-  examples: string[];
-  handler: (data: T, originalRequest: string) => Promise<string>;
+  examples: Array<{ query: string; parameters: T }>;
+  handler: (data: T, originalRequest: string) => Promise<FinalPrompt>;
 }
 
 export const EvaluateNextStepResponseSchema = z.object({

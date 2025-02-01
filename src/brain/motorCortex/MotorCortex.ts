@@ -1,3 +1,7 @@
+import Log from "@log";
+
+import { FunctionDefinition } from "@brain/basalGanglia/types.ts";
+
 import { MotorCortexStatus } from "./types.ts";
 
 class MotorCortex extends EventTarget {
@@ -116,11 +120,147 @@ class MotorCortex extends EventTarget {
       1
     );
 
-    // Adjust to the byte range 0-200
-    const [leftSpeed, rightSpeed] = [leftWheel + 100, rightWheel + 100];
     if (this.status === MotorCortexStatus.CONNECTED) {
-      await this.send([leftSpeed, rightSpeed]);
+      await this.send([leftWheel + 100, rightWheel + 100]);
     }
+  };
+
+  public changeSpeedFunction: FunctionDefinition<{
+    speed: number;
+  }> = {
+    name: "changeSpeed",
+    description: "Change the speed of the car",
+    parameters: [
+      {
+        name: "speed",
+        type: "number",
+        description:
+          "can be a number between -100 (full speed backwards), 0 (stand still) and 100 (full speed)",
+        required: true,
+      },
+    ],
+    examples: [
+      { query: "Lets go full speed forward", parameters: { speed: 100 } },
+      {
+        query: "I think wee need to slow down a bit",
+        parameters: { speed: 50 },
+      },
+      {
+        query: "We need to stop right now",
+        parameters: { speed: 0 },
+      },
+      {
+        query: "Please stop",
+        parameters: { speed: 0 },
+      },
+      {
+        query: "Let's go backwards",
+        parameters: { speed: -50 },
+      },
+    ],
+    handler: async ({ speed }) => {
+      Log.addEntry({
+        category: "changeSpeed",
+        title: "call function with",
+        message: [{ title: "data", content: speed }],
+      });
+      const boundarySpeed = speed < -100 ? -100 : speed > 100 ? 100 : speed;
+      if (this.status === MotorCortexStatus.CONNECTED) {
+        await this.changeSpeed(boundarySpeed);
+        Log.addEntry({
+          category: "changeSpeed",
+          title: "changeSpeed",
+          message: [{ title: "data", content: boundarySpeed }],
+        });
+      } else {
+        Log.addEntry({
+          category: "changeSpeed",
+          title: "not connected",
+          message: [
+            {
+              title: "",
+              content: "could not change because car is not connected",
+            },
+          ],
+        });
+      }
+      const finalPrompt =
+        this.status !== MotorCortexStatus.CONNECTED
+          ? "Tell the user that you are not connected to the car"
+          : boundarySpeed === 0
+            ? "Tell the user that you just stopped"
+            : `Tell the user that you changed the speed to ${boundarySpeed}%`;
+      Log.addEntry({
+        category: "changeSpeed",
+        title: "finalPrompt",
+        message: [{ title: "", content: finalPrompt }],
+      });
+      return finalPrompt;
+    },
+  };
+
+  public changeDirectionFunction: FunctionDefinition<{
+    direction: number;
+  }> = {
+    name: "changeDirection",
+    description: "Change the direction of the car",
+    parameters: [
+      {
+        name: "direction",
+        type: "number",
+        description:
+          "can be a number between -90 (full left turn) and 90 (full right turn) where 0 is straight",
+        required: true,
+      },
+    ],
+    examples: [
+      { query: "Let's turn left", parameters: { direction: -90 } },
+      { query: "Let's turn right", parameters: { direction: 90 } },
+      { query: "Let's go straight", parameters: { direction: 0 } },
+    ],
+    handler: async ({ direction }) => {
+      Log.addEntry({
+        category: "changeDirection",
+        title: "call function with",
+        message: [{ title: "data", content: direction }],
+      });
+
+      const boundaryDirection =
+        direction < -90 ? -90 : direction > 90 ? 90 : direction;
+      if (this.status === MotorCortexStatus.CONNECTED) {
+        await this.changeTurn(boundaryDirection);
+        Log.addEntry({
+          category: "changeDirection",
+          title: "changeDirection",
+          message: [{ title: "data", content: boundaryDirection }],
+        });
+      } else {
+        Log.addEntry({
+          category: "changeDirection",
+          title: "not connected",
+          message: [
+            {
+              title: "",
+              content: "could not change because car is not connected",
+            },
+          ],
+        });
+      }
+
+      const finalPrompt =
+        this.status !== MotorCortexStatus.CONNECTED
+          ? "Tell the user that you are not connected to the car"
+          : boundaryDirection === 0
+            ? "tell the user that your direction changed to straight"
+            : `tell the user that your direction changed to ${boundaryDirection}°`;
+
+      Log.addEntry({
+        category: "changeDirection",
+        title: "finalPrompt",
+        message: [{ title: "", content: finalPrompt }],
+      });
+      return finalPrompt;
+    },
   };
 }
 

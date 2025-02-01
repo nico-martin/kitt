@@ -1,9 +1,11 @@
-import { FunctionDefinition } from "@brain/basalGanglia/types.ts";
+import Log from "@log";
 import ScreenplayParser from "@nico-martin/screenplay-parser";
 
 import featureExtraction from "@utils/featureExtraction";
 import llm from "@utils/llm/llm.ts";
 import reranker from "@utils/reranker";
+
+import { FunctionDefinition } from "@brain/basalGanglia/types.ts";
 
 import { EpisodesDB } from "./episodesDB/db";
 import fetchScreenplay from "./episodesDB/utils/fetchScreenplay.ts";
@@ -267,11 +269,26 @@ class Hippocampus implements HippocampusFactory {
       },
     ],
     examples: [
-      "Do you remember when the car jumped over the river?",
-      "What was the color of the car that hurt you in season 5?",
+      {
+        query: "Do you remember when the car jumped over the river?",
+        parameters: {
+          question: "Do you remember when the car jumped over the river?",
+        },
+      },
+      {
+        query: "What was the color of the car that hurt you in season 5?",
+        parameters: {
+          question: "What was the color of the car that hurt you?",
+          season: 5,
+        },
+      },
     ],
     handler: async (data, originalRequest) => {
-      console.log("[searchEpisode] data", data);
+      Log.addEntry({
+        category: "searchEpisode",
+        title: "call function with",
+        message: [{ title: "data", content: data }],
+      });
 
       const rephrasedQuestion = (
         await llm
@@ -284,27 +301,43 @@ class Hippocampus implements HippocampusFactory {
           )
       ).output;
 
-      console.log("[searchEpisode] rephrasedQuestion", rephrasedQuestion);
+      Log.addEntry({
+        category: "searchEpisode",
+        title: "rephrasedQuestion",
+        message: [{ title: "", content: rephrasedQuestion }],
+      });
 
       const results = await this.getMemory(
         rephrasedQuestion,
         data.season,
         data.episode
       );
-      console.log("[searchEpisode] getMemory found", results);
+      Log.addEntry({
+        category: "searchEpisode",
+        title: `memory found ${results.length} results`,
+        message: [{ title: "", content: results }],
+      });
 
       const reranked = await reranker.rerank({
         compareWith: rephrasedQuestion,
         texts: results.map((r) => r.entry.summaries.join(" ")),
       });
-      console.log("[searchEpisode] reranked results", reranked);
+      Log.addEntry({
+        category: "searchEpisode",
+        title: "reranked results",
+        message: [{ title: "", content: reranked }],
+      });
 
       const bestResult = results[reranked[0].corpus_id].entry;
 
-      console.log("[searchEpisode] bestResult", bestResult);
+      Log.addEntry({
+        category: "searchEpisode",
+        title: "bestResult",
+        message: [{ title: "", content: bestResult }],
+      });
 
       const episode = await EpisodesDB.getEpisode(bestResult.episodeId);
-      return `INSTRUCTIONS:
+      const finalPrompt = `INSTRUCTIONS:
 DOCUMENT contains parts of the Knight Rider Episode ${episode.episodeNumber} "${episode.title}" from season ${episode.seasonNumber}
 Answer the users QUESTION using the DOCUMENT text below.
 Phrase the answer as if you were KITT and reminiscing with michael. Keep your answer short and to the point.
@@ -319,11 +352,17 @@ answer: "Uh, good question. I think it was a knife, wasn't it?"
 
 
 DOCUMENT:
-Episode summary:\n${episode.summary}
 Scene: ${bestResult.summaries.map((s) => `\n${s}`).join("\n\n")}
 
 QUESTION: "${originalRequest}"
 `;
+      Log.addEntry({
+        category: "searchEpisode",
+        title: "finalPrompt",
+        message: [{ title: "", content: finalPrompt }],
+      });
+
+      return finalPrompt;
     },
   };
 }

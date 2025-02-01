@@ -1,8 +1,10 @@
-import { evaluateNextStepSystemPrompt } from "@brain/basalGanglia/prompts.ts";
+import Log from "@log";
 
 import cleanUpJsonObject from "@utils/cleanUpJsonObject.ts";
 import answerAsKitt from "@utils/llm/answerAsKitt.ts";
 import LLM from "@utils/llm/llm.ts";
+
+import { evaluateNextStepSystemPrompt } from "@brain/basalGanglia/prompts.ts";
 
 import {
   BasalGangliaFactory,
@@ -13,9 +15,7 @@ import {
 class BasalGanglia implements BasalGangliaFactory {
   public llm = LLM;
   private functions: Array<FunctionDefinition> = [];
-  // @ts-ignore
-  private about =
-    "The basal ganglia are a group of brain structures linked together, handling complex processes that affect your entire body. While best known for their role in controlling your body's ability to move, experts now know they also play a role in several other functions, such as learning, emotional processing and more.";
+
   constructor() {}
 
   public addFunction = <T>(func: FunctionDefinition<T>) => {
@@ -23,38 +23,85 @@ class BasalGanglia implements BasalGangliaFactory {
   };
 
   public evaluateNextStep = async (request: string): Promise<string> => {
-    console.log("[functionCall] EVALUATING REQUEST");
-    console.log("[functionCall] REQUEST:", request);
+    const started = new Date();
+    Log.addEntry({
+      category: "functionCall",
+      title: "evaluate request",
+      message: [
+        {
+          title: "systemPrompt",
+          content: evaluateNextStepSystemPrompt(this.functions),
+        },
+        { title: "Request", content: request },
+      ],
+    });
     const conversation = this.llm.createConversation(
       evaluateNextStepSystemPrompt(this.functions),
-      0.1
+      0
     );
+
     const response = await conversation.generate(request);
+    const responseOutput = response.output;
+
     const responseCall = EvaluateNextStepResponseSchema.parse(
-      JSON.parse(cleanUpJsonObject(response.output))
+      JSON.parse(cleanUpJsonObject(responseOutput))
     );
-    console.log("[functionCall] RESPONSE CALL");
-    console.log(responseCall);
+    Log.addEntry({
+      category: "functionCall",
+      title: "response",
+      message: [
+        {
+          title: "Raw response",
+          content: responseOutput,
+        },
+        {
+          title: "Parsed response",
+          content: responseCall,
+        },
+      ],
+    });
 
     const matchedFunction = this.functions.find(
       (func) => func.name === responseCall.functionName
     );
 
     if (!matchedFunction) {
-      return await answerAsKitt(request);
+      const answer = await answerAsKitt(request);
+      Log.addEntry({
+        category: "functionCall",
+        title: "finalAnswer",
+        message: [{ title: "", content: answer }],
+      });
+      return answer;
     }
 
-    const callResult = await matchedFunction.handler(
+    Log.addEntry({
+      category: "functionCall",
+      title: `function "${matchedFunction.name}"`,
+      message: [
+        {
+          title: `call for ${matchedFunction.name} with parameters:`,
+          content: responseCall.parameters,
+        },
+      ],
+    });
+
+    const finalPrompt = await matchedFunction.handler(
       responseCall.parameters,
       request
     );
 
-    console.log("[functionCall] CALL RESULT");
-    console.log(callResult);
-
-    const finalAnswer = await answerAsKitt(request);
-    console.log("FINAL ANSWER");
-    console.log(finalAnswer);
+    const finalAnswer = await answerAsKitt(finalPrompt);
+    Log.addEntry({
+      category: "functionCall",
+      title: "finalAnswer",
+      message: [{ title: "", content: finalAnswer }],
+    });
+    const ended = new Date();
+    Log.addEntry({
+      category: "functionCall",
+      title: `ended after ${(ended.getTime() - started.getTime()) / 1000} seconds`,
+    });
     return finalAnswer;
 
     /**

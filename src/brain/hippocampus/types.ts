@@ -23,8 +23,7 @@ export interface HippocampusFactory {
   ) => Promise<Array<{ similarityScore: number; entry: Scene }>>;
   memoryAgentFunction: FunctionDefinition<{
     question: string;
-    context: string;
-    season: number;
-    episode: number;
+    episode?: number;
+    season?: number;
   }>;
 }

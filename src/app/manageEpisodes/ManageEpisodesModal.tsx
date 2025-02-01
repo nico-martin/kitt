@@ -84,7 +84,7 @@ const ManageEpisodesModal: React.FC<{
       const scenes: Array<EpScene> = [];
       for (const scene of actScenes) {
         scenes.push({
-          title: `${act.actNumber}-${scene.sceneNumber} (${scene.text.length})`,
+          title: `${act.actNumber}-${scene.sceneNumber} (${scene.id})`,
           text: scene.text || "",
           summary: scene?.summaries?.join("\n---\n") || "",
         });

@@ -63,7 +63,8 @@
       "^@theme/(.*)$",
       "^@app/(.*)$",
       "^@utils/(.*)$",
-      "^@store/(.*)$",
+      "^@brain/(.*)$",
+      "^@log/(.*)$",
       "^[./]"
     ],
     "importOrderSeparation": true,

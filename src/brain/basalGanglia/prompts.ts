@@ -1,5 +1,11 @@
 import { FunctionDefinition } from "@brain/basalGanglia/types.ts";
 
+const formatExample = (
+  functionName: string,
+  example: { query: string; parameters: Object }
+) =>
+  `- "${example.query}" -> Output: ${JSON.stringify({ functionName, parameters: example.parameters, confidence: 1 })}`;
+
 export const evaluateNextStepSystemPrompt = (
   functions: Array<FunctionDefinition>
 ) => `You are a function parser that matches user commands to available functions.
@@ -7,10 +13,12 @@ Available functions:
 ${functions
   .map(
     (func) => `
-        ${func.name}: ${func.description}
-        Parameters: ${func.parameters.map((p) => `${p.name} (${p.type}${p.required ? ", required" : ""})`).join(", ")}
-        Examples: ${func.examples.join(", ")}
-      `
+  ${func.name}:
+  Description: ${func.description}
+  Parameters: ${func.parameters.map((p) => `${p.name} (${p.type}${p.required ? ", required" : ""})`).join(", ")}
+  Examples: 
+  ${func.examples.map((example) => formatExample(func.name, example)).join("\n  ")}
+`
   )
   .join("\n")}
 

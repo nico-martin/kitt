@@ -1,0 +1,32 @@
+.root {
+}
+
+.toggler {
+  position: absolute;
+  bottom: 1rem;
+  transform: translateX(calc(-100% - 1em));
+  color: white;
+  cursor: pointer;
+  font-size: 0.6rem;
+}
+
+.content {
+  position: absolute;
+  inset: 0;
+  background-color: #000;
+  border-left: 1px solid #292929;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  color: #fff;
+  font-size: 24px;
+  padding: 12px;
+  border-bottom: 1px solid #292929;
+}
+
+.logBook {
+  list-style: none;
+  overflow: auto;
+}

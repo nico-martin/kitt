@@ -1,3 +1,8 @@
+:root {
+  --log-width: 80vw;
+  --log-speed: 0.2s;
+}
+
 .root {
   display: flex;
   flex-direction: column;
@@ -6,6 +11,27 @@
   gap: 4rem;
 
   --display-width: 60%;
+
+  transform: translateX(0);
+  transition: transform var(--log-speed);
+  &.rootLogOpen {
+    transform: translateX(calc(var(--log-width) / 2 * -1));
+  }
+}
+
+.log {
+  width: var(--log-width);
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  transform: translateX(var(--log-width));
+  transition: transform var(--log-speed);
+  z-index: 10;
+
+  &.logOpen {
+    transform: translateX(0);
+  }
 }
 
 .top {

@@ -1,16 +1,18 @@
-import Kokoro from "@brain/borcasArea/kokoro/Kokoro.ts";
-import { MotorCortexStatus } from "@brain/motorCortex/types.ts";
-import { BrainStatus } from "@brain/types.ts";
-import useBrain from "@brain/useBrain.ts";
 import { Button, Display, Kitt, TextLoader } from "@theme";
 import React from "react";
 
 import ConnectCar from "@app/ConnectCar.tsx";
 import Listener from "@app/Listener.tsx";
+import Log from "@app/log/Log.tsx";
 import ManageEpisodesModal from "@app/manageEpisodes/ManageEpisodesModal.tsx";
 import SettingsModal from "@app/settings/SettingsModal.tsx";
 
 import cn from "@utils/classnames.ts";
+
+import Kokoro from "@brain/borcasArea/kokoro/Kokoro.ts";
+import { MotorCortexStatus } from "@brain/motorCortex/types.ts";
+import { BrainStatus } from "@brain/types.ts";
+import useBrain from "@brain/useBrain.ts";
 
 import styles from "./Cockpit.module.css";
 
@@ -30,6 +32,7 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
     (cb) => brain.motorCortext.onStatusChange(cb),
     () => brain.motorCortext.status
   );
+  const [logOpen, setLogOpen] = React.useState<boolean>(false);
 
   const setupAudioDevices = async () => {
     await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -48,6 +51,11 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
   const [messages, setMessages] = React.useState<
     Array<string | React.ReactElement>
   >(["Hi there! Ready to start?"]);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {}, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   React.useEffect(() => {
     setMessages(
@@ -104,64 +112,74 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
   }, [brain.status, auditoryCortexProgress, borcasAreaProgress]);
 
   return (
-    <div className={cn(className, styles.root)}>
-      <div className={styles.top}>
-        <div className={styles.left}>
-          <ConnectCar
-            disabled={!brainReady}
-            connected={motorCortexStatus === MotorCortexStatus.CONNECTED}
-          />
-          <Listener disabled={!brainReady} />
-          <Button
-            disabled={motorCortexStatus !== MotorCortexStatus.CONNECTED}
-            onClick={async () => {
-              await brain.motorCortext.changeSpeed(0);
-              await brain.motorCortext.changeTurn(0);
-            }}
-            color="yellow"
-          >
-            Stop!
-          </Button>
-        </div>
-        <Display className={styles.display} messages={messages} />
-        <div className={styles.right}>
-          {settingsModal && (
-            <SettingsModal
-              show={settingsModal}
-              setShow={setSettingsModal}
-              audioDevices={audioDevices}
+    <React.Fragment>
+      <Log
+        toggleOpen={() => setLogOpen(!logOpen)}
+        className={cn(styles.log, { [styles.logOpen]: logOpen })}
+      />
+      <div
+        className={cn(className, styles.root, {
+          [styles.rootLogOpen]: logOpen,
+        })}
+      >
+        <div className={styles.top}>
+          <div className={styles.left}>
+            <ConnectCar
+              disabled={!brainReady}
+              connected={motorCortexStatus === MotorCortexStatus.CONNECTED}
             />
-          )}
-          <Button
-            color="yellow"
-            disabled={audioDevices.length === 0}
-            onClick={() => setSettingsModal(true)}
-          >
-            Settings
-          </Button>
-          {manageEpisodesModal && (
-            <ManageEpisodesModal
-              show={manageEpisodesModal}
-              setShow={setManageEpisodesModal}
-            />
-          )}
-          <Button color="yellow" onClick={() => setManageEpisodesModal(true)}>
-            Memories
-          </Button>
-          <Button
-            color="yellow"
-            onClick={async () => {
-              const k = new Kokoro();
-              await k.initialize(console.log);
-              k.speak(
-                "The novel 'Moby-Dick' was written by Herman Melville and first published in 1851. Hi there."
-              );
-              k.speak("This should start afterwards");
+            <Listener disabled={!brainReady} />
+            <Button
+              disabled={motorCortexStatus !== MotorCortexStatus.CONNECTED}
+              onClick={async () => {
+                await brain.motorCortext.changeSpeed(0);
+                await brain.motorCortext.changeTurn(0);
+              }}
+              color="yellow"
+            >
+              Stop!
+            </Button>
+          </div>
+          <Display className={styles.display} messages={messages} />
+          <div className={styles.right}>
+            {settingsModal && (
+              <SettingsModal
+                show={settingsModal}
+                setShow={setSettingsModal}
+                audioDevices={audioDevices}
+              />
+            )}
+            <Button
+              color="yellow"
+              disabled={audioDevices.length === 0}
+              onClick={() => setSettingsModal(true)}
+            >
+              Settings
+            </Button>
+            {manageEpisodesModal && (
+              <ManageEpisodesModal
+                show={manageEpisodesModal}
+                setShow={setManageEpisodesModal}
+              />
+            )}
+            <Button color="yellow" onClick={() => setManageEpisodesModal(true)}>
+              Memories
+            </Button>
+            <Button
+              disabled={true}
+              color="yellow"
+              onClick={async () => {
+                const k = new Kokoro();
+                await k.initialize(console.log);
+                k.speak(
+                  "The novel 'Moby-Dick' was written by Herman Melville and first published in 1851. Hi there."
+                );
+                k.speak("This should start afterwards");
 
-              return;
-              //const query = window.prompt("Enter your query:");
+                return;
+                //const query = window.prompt("Enter your query:");
 
-              /*console.log("RERANKER");
+                /*console.log("RERANKER");
               const compareWith = "Who wrote 'To Kill a Mockingbird'?";
               const texts = [
                 "'To Kill a Mockingbird' is a novel by Harper Lee published in 1960. It was immediately successful, winning the Pulitzer Prize, and has become a classic of modern American literature.",
@@ -186,44 +204,45 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
                 );
               return;*/
 
-              const query =
-                "Do you remember in season 1 when Michael fell asleep in the car and got pulled over by the police? What was your suggestion on how he should handle it?";
-              //"Hi KITT, Do you remember in season 1 when Michael fell asleep in the car and got pulled over by the police? What was your suggestion?";
-              //"How did Michael avoid trouble when he fell asleep in the car and got pulled over by the police?";
+                const query =
+                  "Do you remember in season 1 when Michael fell asleep in the car and got pulled over by the police? What was your suggestion on how he should handle it?";
+                // In season 3 What is the connection between Sonny and the deadly poison gas exchange and did something tragic happen? (season 2, ep 8, scene id 4150)
+                // How does Bernie Mitchell present himself in season 2 at the party, and how does Nina Jurgenson react? (season 2, ep 13, scene id 2714)
 
-              console.log(query);
-              await brain.processQuery(query);
-              //const scenes = await brain.hippocampus.getMemory(query, 1);
-              //console.log(scenes.map((s) => s.entry.summaries));
-              /*
+                console.log(query);
+                await brain.processQuery(query);
+                //const scenes = await brain.hippocampus.getMemory(query, 1);
+                //console.log(scenes.map((s) => s.entry.summaries));
+                /*
               scenes.map(({ entry, similarityScore }) => {
                 console.log(similarityScore);
                 console.log(entry.episodeId);
                 console.log((entry?.summaries || []).join("\n---\n"));
               });*/
-            }}
-          >
-            Kokoro
-          </Button>
+              }}
+            >
+              ...
+            </Button>
+          </div>
         </div>
+        {brainReady ? (
+          <Kitt className={styles.kitt} volume={0.5} />
+        ) : (
+          <Button
+            className={styles.startButton}
+            onClick={async () =>
+              await brain.wakeUp(
+                (progress) => setAuditoryCortexProgress(progress),
+                (progress) => setBorcasAreaProgress(progress),
+                (progress) => setLlmProgress(progress)
+              )
+            }
+          >
+            Wake up!
+          </Button>
+        )}
       </div>
-      {brainReady ? (
-        <Kitt className={styles.kitt} volume={0.5} />
-      ) : (
-        <Button
-          className={styles.startButton}
-          onClick={async () =>
-            await brain.wakeUp(
-              (progress) => setAuditoryCortexProgress(progress),
-              (progress) => setBorcasAreaProgress(progress),
-              (progress) => setLlmProgress(progress)
-            )
-          }
-        >
-          Wake up!
-        </Button>
-      )}
-    </div>
+    </React.Fragment>
   );
 };
 
