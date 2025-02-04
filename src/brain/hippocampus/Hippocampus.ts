@@ -270,6 +270,12 @@ class Hippocampus implements HippocampusFactory {
     ],
     examples: [
       {
+        query: "Why is devon so good at escaping prisons?",
+        parameters: {
+          question: "Do you remember when the car jumped over the river?",
+        },
+      },
+      {
         query: "Do you remember when the car jumped over the river?",
         parameters: {
           question: "Do you remember when the car jumped over the river?",
@@ -328,31 +334,25 @@ class Hippocampus implements HippocampusFactory {
         message: [{ title: "", content: reranked }],
       });
 
-      const bestResult = results[reranked[0].corpus_id].entry;
+      const bestResults = [
+        results[reranked[0].corpus_id].entry,
+        results[reranked[1].corpus_id].entry,
+        results[reranked[2].corpus_id].entry,
+      ];
 
       Log.addEntry({
         category: "searchEpisode",
         title: "bestResult",
-        message: [{ title: "", content: bestResult }],
+        message: [{ title: "", content: bestResults }],
       });
 
-      const episode = await EpisodesDB.getEpisode(bestResult.episodeId);
-      const finalPrompt = `INSTRUCTIONS:
-DOCUMENT contains parts of the Knight Rider Episode ${episode.episodeNumber} "${episode.title}" from season ${episode.seasonNumber}
-Answer the users QUESTION using the DOCUMENT text below.
-Phrase the answer as if you were KITT and reminiscing with michael. Keep your answer short and to the point.
-Not meta information about what you are doing, but just your answer.
-
-EXAMPLES:
-question: "Do you remember in season 4 why we jumped over the river?"
-answer: "Yes, I remember. That must have been episode 7. We did that to catch the thief, right? It was a thrilling moment."
-
-question: "What was the thiefs weapon when we investigated the robbery in season 4?"
-answer: "Uh, good question. I think it was a knife, wasn't it?"
-
-
-DOCUMENT:
-Scene: ${bestResult.summaries.map((s) => `\n${s}`).join("\n\n")}
+      const episodes = await Promise.all(
+        bestResults.map((bestResult) =>
+          EpisodesDB.getEpisode(bestResult.episodeId)
+        )
+      );
+      const finalPrompt = `Context to answer the question:
+${bestResults.map((result, i) => `\nSeason ${episodes[i].seasonNumber}, Episode ${episodes[i].episodeNumber}:\n${result.summaries.map((s) => `\n${s}`).join("\n\n")}`).join("\n\n")}
 
 QUESTION: "${originalRequest}"
 `;

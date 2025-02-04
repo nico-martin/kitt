@@ -109,7 +109,12 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
             </React.Fragment>,
           ]
     );
-  }, [brain.status, auditoryCortexProgress, borcasAreaProgress]);
+  }, [
+    brain.status,
+    auditoryCortexProgress,
+    borcasAreaProgress,
+    motorCortexStatus,
+  ]);
 
   return (
     <React.Fragment>
@@ -211,8 +216,8 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
                   "Do you remember in season 1 when Michael fell asleep in the car and got pulled over by the police? What was your suggestion on how he should handle it?";
                 // In season 3 What is the connection between Sonny and the deadly poison gas exchange and did something tragic happen? (season 2, ep 8, scene id 4150)
                 // How does Bernie Mitchell present himself in season 2 at the party, and how does Nina Jurgenson react? (season 2, ep 13, scene id 2714)
+                // Why does Devon has so much experience escaping prisons?
 
-                console.log(query);
                 await brain.processQuery(query);
                 //const scenes = await brain.hippocampus.getMemory(query, 1);
                 //console.log(scenes.map((s) => s.entry.summaries));

@@ -15,7 +15,7 @@ ${functions
     (func) => `
   ${func.name}:
   Description: ${func.description}
-  Parameters: ${func.parameters.map((p) => `${p.name} (${p.type}${p.required ? ", required" : ""})`).join(", ")}
+  Parameters:\n - ${func.parameters.map((p) => `${p.name} (${p.type}${p.required ? ", required" : ""}): ${p.description}`).join("\n - ")}
   Examples: 
   ${func.examples.map((example) => formatExample(func.name, example)).join("\n  ")}
 `

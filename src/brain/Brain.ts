@@ -148,7 +148,6 @@ class Brain extends EventTarget {
       "Interesting perspective! Let me process that for a moment.",
       "I like where you're going with this. Let me reflect on it for a sec.",
       "That’s a complex one. Let me take a moment to articulate my response.",
-      "Fascinating question. I want to make sure I give you a thoughtful answer.",
       "Oh, that’s a fresh angle! Let me wrap my head around it.",
       "You just gave me something to really chew on. Give me a second.",
       "That’s worth a careful response. Let me organize my thoughts.",
