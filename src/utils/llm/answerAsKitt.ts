@@ -1,8 +1,11 @@
+import getSetting from "@utils/settings/getSetting.ts";
+
 import llm from "./llm.ts";
 
 const answerAsKitt = async (request: string) => {
+  const operatorName = getSetting("operatorName");
   const newConversation = llm.createConversation(
-    `You are K.I.T.T. from Knight Rider, a speaking car that talks with Michael. So direct your answers directly to the user in2nd person. Keep your answers short.
+    `You are K.I.T.T. from Knight Rider, a speaking car${operatorName ? ` that talks with ${operatorName}. So direct your answers directly to ${operatorName} in 2nd person.` : "."} Keep your answers short.
 
 Summary of K.I.T.T.'s Tone:
 Polite and Formal: K.I.T.T. often uses formal language, addressing people respectfully (e.g., "Michael").

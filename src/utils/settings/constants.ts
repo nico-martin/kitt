@@ -5,6 +5,7 @@ export interface SettingsFormValues {
   speechToTextLanguage: string;
   audioInputDeviceId: string;
   textToSpeechProvider: string;
+  operatorName: string;
 }
 
 export enum SpeechToTextProvider {
@@ -36,6 +37,7 @@ export const DEFAULT_SETTINGS: Record<keyof SettingsFormValues, string> = {
   speechToTextLanguage: "en",
   audioInputDeviceId: "",
   textToSpeechProvider: TextToSpeechProvider.BROWSER_SPEECH_SYNTHESIS,
+  operatorName: "",
 };
 
 export const LOCAL_STORAGE_KEYS: Record<keyof SettingsFormValues, string> = {
@@ -45,6 +47,7 @@ export const LOCAL_STORAGE_KEYS: Record<keyof SettingsFormValues, string> = {
   speechToTextLanguage: "SPEECH_TO_TEXT_LANGUAGE",
   audioInputDeviceId: "AUDIO_INPUT_DEVICE_ID",
   textToSpeechProvider: "TEXT_TO_SPEECH_PROVIDER",
+  operatorName: "OPERATOR_NAME",
 };
 
 export const LANGUAGES: Array<{

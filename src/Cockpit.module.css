@@ -34,6 +34,14 @@
   }
 }
 
+.kitt h1 {
+  font-size: 5rem;
+  color: white;
+  text-align: center;
+  font-family: "Bullet", sans-serif;
+  font-weight: 100;
+}
+
 .top {
   display: flex;
   gap: 0.75rem;

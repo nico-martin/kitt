@@ -29,6 +29,7 @@ const SettingsModal: React.FC<{
       speechToTextLanguage: getSetting("speechToTextLanguage"),
       audioInputDeviceId: getSetting("audioInputDeviceId"),
       textToSpeechProvider: getSetting("textToSpeechProvider"),
+      operatorName: getSetting("operatorName"),
     },
   });
 
@@ -49,13 +50,16 @@ const SettingsModal: React.FC<{
             window.location.reload();
           })}
         >
+          <h4>About</h4>
+          <FormElement label="Your Name" name="operatorName" type="text" />
+          <br />
           <h4>LLM</h4>
           <FormElement
             label="Gemini API key"
             name="geminiApiKey"
             type="text"
             inputType="password"
-          />
+          />{" "}
           <FormElement
             label="LLM Provider"
             name="llmProvider"

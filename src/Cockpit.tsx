@@ -122,6 +122,9 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
           [styles.rootLogOpen]: logOpen,
         })}
       >
+        <header className={styles.kitt}>
+          <h1>K.I.T.T.</h1>
+        </header>
         <div className={styles.top}>
           <div className={styles.left}>
             <ConnectCar
