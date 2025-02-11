@@ -193,7 +193,7 @@ class Kokoro extends EventTarget implements BorcasAreaFactory {
     new Promise((resolve, reject) => {
       this.id++;
       const id = this.id;
-      this.queue.push({ id, input: { text, voice: "bm_lewis" } });
+      this.queue.push({ id, input: { text, voice: "bm_daniel" } });
       callback({
         status: QueueStatus.ADDED_TO_QUEUE,
         statusText:

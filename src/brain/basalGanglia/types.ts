@@ -5,24 +5,31 @@ import { LlmFactoryI } from "@utils/llm/types.ts";
 export interface BasalGangliaFactory {
   llm: LlmFactoryI;
   addFunction: <T>(func: FunctionDefinition<T>) => void;
-  evaluateNextStep: (request: string) => Promise<string>;
+  evaluateNextStep: (
+    request: string,
+    maxRounds?: number,
+    history?: Array<{ role: "function"; name: string; response: string }>,
+    startedAt?: Date,
+    round?: number
+  ) => Promise<string>;
 }
 
-interface FunctionParameter {
-  name: string;
-  type: "string" | "boolean" | "number";
-  description: string;
-  required: boolean;
-}
-
-type FinalPrompt = string;
-
-export interface FunctionDefinition<T = any> {
+export interface FunctionDefinition<T> {
   name: string;
   description: string;
-  parameters: Array<FunctionParameter>;
-  examples: Array<{ query: string; parameters: T }>;
-  handler: (data: T, originalRequest: string) => Promise<FinalPrompt>;
+  parameters: z.ZodType<T>;
+  examples: Array<{
+    query: string;
+    parameters: T;
+    output?: string;
+  }>;
+  handler: (
+    data: T,
+    originalRequest: string
+  ) => Promise<{
+    response: string;
+    maybeNextStep: boolean;
+  }>;
 }
 
 export const EvaluateNextStepResponseSchema = z.object({
@@ -31,5 +38,5 @@ export const EvaluateNextStepResponseSchema = z.object({
     z.string(),
     z.union([z.string(), z.number(), z.boolean(), z.null()])
   ),
-  confidence: z.number().min(0).max(1).optional(),
+  output: z.string().optional(),
 });

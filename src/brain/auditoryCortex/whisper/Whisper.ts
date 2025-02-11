@@ -1,6 +1,6 @@
-import WHISPER_LANGUAGES from "@brain/auditoryCortex/whisper/languages.ts";
-
 import getSetting from "@utils/settings/getSetting.ts";
+
+import WHISPER_LANGUAGES from "@brain/auditoryCortex/whisper/languages.ts";
 
 import { AuditoryCortexFactory } from "../types.ts";
 import getAudioFromChunks from "./getAudioFromChunks.ts";
@@ -141,7 +141,6 @@ class Whisper extends EventTarget implements AuditoryCortexFactory {
         ) {
           removeQueueListener();
           if (data.status === QueueStatus.DONE) {
-            console.log("resolve", data.output);
             resolve(data.output);
           } else {
             reject(data);

@@ -17,14 +17,17 @@ import Model from "./models/Model.ts";
 class WebLlm extends EventTarget implements LlmFactoryI {
   private engine: WebWorkerMLCEngine = null;
   private queueInProgress = false;
-  private model: Model = null;
+  private model: Model | string = null;
   private queue: Array<{
     id: string;
     request: ChatCompletionRequestStreaming;
   }> = [];
   private logger: (data: any) => any = null;
 
-  constructor(model: Model, logCallback: (data: any) => any = () => {}) {
+  constructor(
+    model: Model | string,
+    logCallback: (data: any) => any = () => {}
+  ) {
     super();
     this.model = model;
     this.logger = logCallback;
@@ -41,20 +44,24 @@ class WebLlm extends EventTarget implements LlmFactoryI {
       new Worker(new URL("./worker.ts", import.meta.url), {
         type: "module",
       }),
-      this.model.id,
+      typeof this.model === "string" ? this.model : this.model.id,
       {
         ...(callback
           ? { initProgressCallback: (data) => callback(data.progress) }
           : {}),
-        appConfig: {
-          model_list: [
-            {
-              model: this.model.url,
-              model_id: this.model.id,
-              model_lib: this.model.libUrl,
-            },
-          ],
-        },
+        ...(typeof this.model !== "string"
+          ? {
+              appConfig: {
+                model_list: [
+                  {
+                    model: this.model.url,
+                    model_id: this.model.id,
+                    model_lib: this.model.libUrl,
+                  },
+                ],
+              },
+            }
+          : {}),
       }
     );
     this.executeQueue();
@@ -84,7 +91,7 @@ class WebLlm extends EventTarget implements LlmFactoryI {
       status: GenerateCallbackStatus.THINKING,
       statusText: "Thinking...",
       output: "",
-      modelId: this.model.id,
+      modelId: typeof this.model === "string" ? this.model : this.model.id,
     });
 
     try {
@@ -99,7 +106,7 @@ class WebLlm extends EventTarget implements LlmFactoryI {
           statusText: "",
           output: reply,
           stats: chunk?.usage || null,
-          modelId: this.model.id,
+          modelId: typeof this.model === "string" ? this.model : this.model.id,
         });
       }
     } catch (e) {
@@ -107,7 +114,7 @@ class WebLlm extends EventTarget implements LlmFactoryI {
         status: GenerateCallbackStatus.ERROR,
         statusText: e.toString(),
         output: "",
-        modelId: this.model.id,
+        modelId: typeof this.model === "string" ? this.model : this.model.id,
       });
       console.log(e);
     }

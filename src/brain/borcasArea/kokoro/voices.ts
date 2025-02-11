@@ -56,10 +56,26 @@ export const VOICES = Object.freeze({
     language: "en-gb",
     gender: "Male",
   },
+  bm_daniel: {
+    name: "Daniel",
+    language: "en-gb",
+    gender: "Male",
+    traits: "🚹",
+    targetQuality: "C",
+    overallGrade: "D",
+  },
+  bm_fable: {
+    name: "Fable",
+    language: "en-gb",
+    gender: "Male",
+    traits: "🚹",
+    targetQuality: "B",
+    overallGrade: "C",
+  },
 });
 
 const VOICE_DATA_URL =
-  "https://huggingface.co/onnx-community/Kokoro-82M-ONNX/resolve/main/voices";
+  "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices";
 
 const getVoiceFile = async (id: string) => {
   const url = `${VOICE_DATA_URL}/${id}.bin`;

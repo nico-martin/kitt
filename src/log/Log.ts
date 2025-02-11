@@ -16,17 +16,26 @@ class Log extends EventTarget {
     return this._log;
   }
 
+  public set log(value: Array<LogEntry>) {
+    this._log = value;
+    this.dispatchEvent(new Event("logChange"));
+  }
+
   public addEntry = (entry: Partial<LogEntry>) => {
-    this._log.push({
-      type: "info",
-      category: "misc",
-      title: "",
-      message: [],
-      timestamp: new Date(),
-      ...entry,
-    });
-    this.persist &&
-      window.localStorage.setItem("log", JSON.stringify(this._log));
+    this.log = [
+      ...this.log,
+      {
+        type: "info",
+        category: "misc",
+        title: "",
+        message: [],
+        timestamp: new Date(),
+        ...entry,
+      },
+    ];
+
+    if (this.persist)
+      window.localStorage.setItem("log", JSON.stringify(this.log));
     this.dispatchEvent(new Event("logChange"));
   };
 

@@ -1,5 +1,6 @@
 import Log from "@log";
 import ScreenplayParser from "@nico-martin/screenplay-parser";
+import { z } from "zod";
 
 import featureExtraction from "@utils/featureExtraction";
 import llm from "@utils/llm/llm.ts";
@@ -14,7 +15,10 @@ import {
   createEpisodeSummary,
   createSceneSummary,
 } from "./episodesDB/utils/summaries.ts";
-import { HippocampusFactory } from "./types.ts";
+import {
+  HippocampusFactory,
+  memoryAgentFunctionParametersSchema,
+} from "./types.ts";
 
 class Hippocampus implements HippocampusFactory {
   public rebuildMemoryFromEpisodes = async () => {
@@ -76,7 +80,7 @@ class Hippocampus implements HippocampusFactory {
   public processMemories = async (
     episodeId: number,
     log: (message?: string) => void = () => {},
-    signal: AbortSignal = null,
+    signal: AbortSignal = new AbortController().signal,
     useCache: boolean = true
   ) => {
     let inputTokens = 0;
@@ -238,48 +242,27 @@ class Hippocampus implements HippocampusFactory {
 
   public getMemory = EpisodesDB.findScenes;
 
-  public memoryAgentFunction: FunctionDefinition<{
-    question: string;
-    episode?: number;
-    season?: number;
-  }> = {
+  public memoryAgentFunction: FunctionDefinition<
+    z.infer<typeof memoryAgentFunctionParametersSchema>
+  > = {
     name: "searchEpisode",
     description:
-      "Search through all the Seasons, Episodes and Scenes from the Knight-Ride Series to find relevant information (Memories) to answer the question.",
-    parameters: [
-      {
-        name: "question",
-        type: "string",
-        description:
-          "The exact question the user asked without reference to the season or episode number.",
-        // "The question the user asked. the question may involve direct speech (second person). This needs to be changed to 3rd person and talk about “KIT”: Can you help me? -> Can KITT help me?",
-        required: true,
-      },
-      {
-        name: "season",
-        type: "number",
-        description: "The season number if specified",
-        required: false,
-      },
-      {
-        name: "episode",
-        type: "number",
-        description: "The episode number if specified",
-        required: false,
-      },
-    ],
+      "Search through all the Seasons, Episodes and Scenes from the Knight-Ride Series to find Memories to answer questions about KITT's past. Not the present!",
+    parameters: memoryAgentFunctionParametersSchema,
     examples: [
       {
         query: "Why is devon so good at escaping prisons?",
         parameters: {
           question: "Do you remember when the car jumped over the river?",
         },
+        output: "Thats a good question. Let me think about it.",
       },
       {
         query: "Do you remember when the car jumped over the river?",
         parameters: {
           question: "Do you remember when the car jumped over the river?",
         },
+        output: "Hmm, I haven't thought about that before. Let me process it.",
       },
       {
         query: "What was the color of the car that hurt you in season 5?",
@@ -287,6 +270,7 @@ class Hippocampus implements HippocampusFactory {
           question: "What was the color of the car that hurt you?",
           season: 5,
         },
+        output: "Im not sure. Let me take a second to think about it.",
       },
     ],
     handler: async (data, originalRequest) => {
@@ -351,18 +335,14 @@ class Hippocampus implements HippocampusFactory {
           EpisodesDB.getEpisode(bestResult.episodeId)
         )
       );
-      const finalPrompt = `Context to answer the question:
-${bestResults.map((result, i) => `\nSeason ${episodes[i].seasonNumber}, Episode ${episodes[i].episodeNumber}:\n${result.summaries.map((s) => `\n${s}`).join("\n\n")}`).join("\n\n")}
-
-QUESTION: "${originalRequest}"
-`;
+      const response = `${bestResults.map((result, i) => `\nSeason ${episodes[i].seasonNumber}, Episode ${episodes[i].episodeNumber}:\n${result.summaries.map((s) => `\n${s}`).join("\n\n")}`).join("\n\n")}`;
       Log.addEntry({
         category: "searchEpisode",
-        title: "finalPrompt",
-        message: [{ title: "", content: finalPrompt }],
+        title: "response",
+        message: [{ title: "", content: response }],
       });
 
-      return finalPrompt;
+      return { response, maybeNextStep: true };
     },
   };
 }

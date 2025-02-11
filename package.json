@@ -14,7 +14,7 @@
     "screenplayLoader": "node ./scripts/screenplayLoader.js"
   },
   "dependencies": {
-    "@huggingface/transformers": "^3.3.1",
+    "@huggingface/transformers": "^3.3.3",
     "@mlc-ai/web-llm": "^0.2.77",
     "@nico-martin/screenplay-parser": "^1.0.8",
     "cheerio": "^1.0.0",

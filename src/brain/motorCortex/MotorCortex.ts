@@ -1,8 +1,25 @@
 import Log from "@log";
+import { z } from "zod";
 
 import { FunctionDefinition } from "@brain/basalGanglia/types.ts";
 
 import { MotorCortexStatus } from "./types.ts";
+
+const motorSpeedParameterSchema = z.object({
+  speed: z
+    .number()
+    .min(-100)
+    .max(100)
+    .describe("Speed of the car, min -100, max 100")
+    .transform((val) => Math.max(-100, Math.min(100, val))),
+});
+
+const motorDirectionParameterSchema = z.object({
+  direction: z
+    .number()
+    .describe("Direction of the car, min -90, max 90")
+    .transform((val) => Math.max(-90, Math.min(90, val))),
+});
 
 class MotorCortex extends EventTarget {
   private service: BluetoothRemoteGATTService;
@@ -125,22 +142,17 @@ class MotorCortex extends EventTarget {
     }
   };
 
-  public changeSpeedFunction: FunctionDefinition<{
-    speed: number;
-  }> = {
+  public changeSpeedFunction: FunctionDefinition<
+    z.infer<typeof motorSpeedParameterSchema>
+  > = {
     name: "changeSpeed",
     description: "Change the speed of the car",
-    parameters: [
-      {
-        name: "speed",
-        type: "number",
-        description:
-          "can be a number between -100 (full speed backwards), 0 (stand still) and 100 (full speed)",
-        required: true,
-      },
-    ],
+    parameters: motorSpeedParameterSchema,
     examples: [
-      { query: "Lets go full speed forward", parameters: { speed: 100 } },
+      {
+        query: "Lets go full speed forward",
+        parameters: { speed: 100 },
+      },
       {
         query: "I think wee need to slow down a bit",
         parameters: { speed: 50 },
@@ -158,7 +170,8 @@ class MotorCortex extends EventTarget {
         parameters: { speed: -50 },
       },
     ],
-    handler: async ({ speed }) => {
+    handler: async (data) => {
+      const { speed } = motorSpeedParameterSchema.parse(data);
       Log.addEntry({
         category: "changeSpeed",
         title: "call function with",
@@ -184,7 +197,7 @@ class MotorCortex extends EventTarget {
           ],
         });
       }
-      const finalPrompt =
+      const response =
         this.status !== MotorCortexStatus.CONNECTED
           ? "Tell the user that you are not connected to the car"
           : boundarySpeed === 0
@@ -192,27 +205,19 @@ class MotorCortex extends EventTarget {
             : `Tell the user that you changed the speed to ${boundarySpeed}%`;
       Log.addEntry({
         category: "changeSpeed",
-        title: "finalPrompt",
-        message: [{ title: "", content: finalPrompt }],
+        title: "response",
+        message: [{ title: "", content: response }],
       });
-      return finalPrompt;
+      return { response, maybeNextStep: false };
     },
   };
 
-  public changeDirectionFunction: FunctionDefinition<{
-    direction: number;
-  }> = {
+  public changeDirectionFunction: FunctionDefinition<
+    z.infer<typeof motorDirectionParameterSchema>
+  > = {
     name: "changeDirection",
     description: "Change the direction of the car",
-    parameters: [
-      {
-        name: "direction",
-        type: "number",
-        description:
-          "can be a number between -90 (full left turn) and 90 (full right turn) where 0 is straight",
-        required: true,
-      },
-    ],
+    parameters: motorDirectionParameterSchema,
     examples: [
       { query: "Let's turn left", parameters: { direction: -90 } },
       { query: "Let's turn right", parameters: { direction: 90 } },
@@ -247,7 +252,7 @@ class MotorCortex extends EventTarget {
         });
       }
 
-      const finalPrompt =
+      const response =
         this.status !== MotorCortexStatus.CONNECTED
           ? "Tell the user that you are not connected to the car"
           : boundaryDirection === 0
@@ -256,10 +261,10 @@ class MotorCortex extends EventTarget {
 
       Log.addEntry({
         category: "changeDirection",
-        title: "finalPrompt",
-        message: [{ title: "", content: finalPrompt }],
+        title: "response",
+        message: [{ title: "", content: response }],
       });
-      return finalPrompt;
+      return { response, maybeNextStep: false };
     },
   };
 }

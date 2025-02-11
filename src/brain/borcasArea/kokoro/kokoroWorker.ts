@@ -21,7 +21,7 @@ class ModelInstance {
   private static instance: ModelInstance = null;
   private tokenizer: PreTrainedTokenizer;
   private model: PreTrainedModel;
-  private modelId: string = "onnx-community/Kokoro-82M-ONNX";
+  private modelId: string = "onnx-community/Kokoro-82M-v1.0-ONNX";
 
   public static getInstance() {
     if (!this.instance) {
@@ -47,7 +47,8 @@ class ModelInstance {
     });
 
     const modelPromise = StyleTextToSpeech2Model.from_pretrained(this.modelId, {
-      dtype: "q8",
+      dtype: "fp32",
+      device: "webgpu",
       progress_callback: log,
     });
 
@@ -93,17 +94,14 @@ onMessage(async (event) => {
   }
 
   try {
-    const language = voice.at(0); // "a" or "b"
+    const language = /** @type {"a"|"b"} */ voice.at(0); // "a" or "b"
     const phonemes = await phonemize(text, language);
     const { input_ids } = tokenizer(phonemes, {
       truncation: true,
     });
 
     // Select voice style based on number of input tokens
-    const numTokens = Math.max(
-      input_ids.dims.at(-1) - 2, // Without padding;
-      0
-    );
+    const numTokens = Math.min(Math.max(input_ids.dims.at(-1) - 2, 0), 509);
 
     const data = await getVoiceData(voice);
     const offset = numTokens * STYLE_DIM;

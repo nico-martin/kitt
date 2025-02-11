@@ -159,7 +159,7 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
             )}
             <Button
               color="yellow"
-              disabled={audioDevices.length === 0}
+              //disabled={audioDevices.length === 0}
               onClick={() => setSettingsModal(true)}
             >
               Settings
@@ -174,9 +174,22 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
               Memories
             </Button>
             <Button
-              disabled={true}
+              //disabled={true}
               color="yellow"
               onClick={async () => {
+                /*const hi = await brain.processQuery(
+                  "Hi KITT, how are you today?"
+                );
+                console.log("DONE hi", hi);
+                const search = await brain.processQuery(
+                  "In season 3 What is the connection between Sonny and the deadly poison gas exchange and did something tragic happen?"
+                );
+                console.log("DONE search", search);
+                const go = await brain.processQuery(
+                  "I think we should go out of here as fast as possible"
+                );
+                console.log("DONE go", go);*/
+
                 const k = new Kokoro();
                 await k.initialize(console.log);
                 k.speak(

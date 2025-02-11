@@ -4,7 +4,10 @@ import cleanUpJsonObject from "@utils/cleanUpJsonObject.ts";
 import answerAsKitt from "@utils/llm/answerAsKitt.ts";
 import LLM from "@utils/llm/llm.ts";
 
-import { evaluateNextStepSystemPrompt } from "@brain/basalGanglia/prompts.ts";
+import {
+  evaluateNextStepSystemPrompt,
+  generateFinalAnswerSystemPrompt,
+} from "@brain/basalGanglia/prompts.ts";
 
 import {
   BasalGangliaFactory,
@@ -14,7 +17,7 @@ import {
 
 class BasalGanglia implements BasalGangliaFactory {
   public llm = LLM;
-  private functions: Array<FunctionDefinition> = [];
+  private functions: Array<FunctionDefinition<any>> = [];
 
   constructor() {}
 
@@ -22,33 +25,65 @@ class BasalGanglia implements BasalGangliaFactory {
     this.functions.push(func);
   };
 
-  public evaluateNextStep = async (request: string): Promise<string> => {
-    const started = new Date();
+  public evaluateNextStep = async (
+    request: string,
+    maxRounds: number = 2,
+    history: Array<{ role: "function"; name: string; response: string }> = [],
+    startedAt: Date = new Date(),
+    round: number = 1
+  ): Promise<string> => {
+    if (round > maxRounds) {
+      Log.addEntry({
+        category: "evaluateNextStep",
+        title: "Error: Max rounds reached",
+        message: [
+          {
+            title: "Error",
+            content: `Max rounds reached: ${round} of ${maxRounds}`,
+          },
+        ],
+      });
+      return "I am sorry, I could not find a final answer.";
+    }
+
+    const requestWithHistory =
+      history.length > 0
+        ? `CONTEXT TO ANSWER THE QUESTION:
+        
+${history.map((entry) => entry.response).join("\n")}
+
+REQUEST:
+${request}`
+        : request;
+
+    const systemPrompt =
+      round === maxRounds
+        ? generateFinalAnswerSystemPrompt()
+        : evaluateNextStepSystemPrompt(this.functions);
+
     Log.addEntry({
-      category: "functionCall",
-      title: "evaluate request",
+      category: "evaluateNextStep",
+      title: `evaluate request (Round ${round})`,
       message: [
+        { title: "rounds", content: `${round} of max.  ${maxRounds}` },
         {
           title: "systemPrompt",
-          content: evaluateNextStepSystemPrompt(this.functions),
+          content: systemPrompt,
         },
-        { title: "Request", content: request },
+        { title: "Request", content: requestWithHistory },
       ],
     });
-    const conversation = this.llm.createConversation(
-      evaluateNextStepSystemPrompt(this.functions),
-      0
-    );
 
-    const response = await conversation.generate(request);
+    const conversation = this.llm.createConversation(systemPrompt, 0);
+    const response = await conversation.generate(requestWithHistory);
     const responseOutput = response.output;
-
     const responseCall = EvaluateNextStepResponseSchema.parse(
       JSON.parse(cleanUpJsonObject(responseOutput))
     );
+
     Log.addEntry({
-      category: "functionCall",
-      title: "response",
+      category: "evaluateNextStep",
+      title: `response (Round ${round})`,
       message: [
         {
           title: "Raw response",
@@ -66,14 +101,34 @@ class BasalGanglia implements BasalGangliaFactory {
     );
 
     if (!matchedFunction) {
-      const answer = await answerAsKitt(request);
-      Log.addEntry({
-        category: "functionCall",
-        title: "finalAnswer",
-        message: [{ title: "", content: answer }],
-      });
-      return answer;
+      if (responseCall.output) {
+        const ended = new Date();
+        Log.addEntry({
+          category: "evaluateNextStep",
+          title: "finalAnswer",
+          message: [
+            { title: "", content: responseCall.output },
+            {
+              title: "Timing",
+              content: `${(ended.getTime() - startedAt.getTime()) / 1000} seconds`,
+            },
+          ],
+        });
+
+        return responseCall.output;
+      } else {
+        Log.addEntry({
+          category: "evaluateNextStep",
+          title: "finalAnswer",
+          message: [{ title: "Error", content: "No final answer" }],
+        });
+        return "I am sorry, I could not find a final answer";
+      }
     }
+
+    const matchedFunctionParameters = matchedFunction.parameters.parse(
+      responseCall.parameters
+    );
 
     Log.addEntry({
       category: "functionCall",
@@ -81,17 +136,48 @@ class BasalGanglia implements BasalGangliaFactory {
       message: [
         {
           title: `call for ${matchedFunction.name} with parameters:`,
-          content: responseCall.parameters,
+          content: matchedFunctionParameters,
         },
       ],
     });
 
-    const finalPrompt = await matchedFunction.handler(
+    const toolCall = await matchedFunction.handler(
       responseCall.parameters,
       request
     );
 
-    const finalAnswer = await answerAsKitt(finalPrompt);
+    if (!toolCall.maybeNextStep) {
+      const ended = new Date();
+      Log.addEntry({
+        category: "functionCall",
+        title: "finalAnswer",
+        message: [
+          { title: "", content: toolCall.response },
+          {
+            title: "Timing",
+            content: `${(ended.getTime() - startedAt.getTime()) / 1000} seconds`,
+          },
+        ],
+      });
+
+      return answerAsKitt(toolCall.response);
+    }
+
+    history.push({
+      role: "function",
+      name: matchedFunction.name,
+      response: toolCall.response,
+    });
+
+    return this.evaluateNextStep(
+      request,
+      maxRounds,
+      history,
+      startedAt,
+      round + 1
+    );
+
+    /*const finalAnswer = await answerAsKitt(finalPrompt);
     Log.addEntry({
       category: "functionCall",
       title: "finalAnswer",
