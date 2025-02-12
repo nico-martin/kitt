@@ -255,14 +255,12 @@ class Hippocampus implements HippocampusFactory {
         parameters: {
           question: "Do you remember when the car jumped over the river?",
         },
-        output: "Thats a good question. Let me think about it.",
       },
       {
         query: "Do you remember when the car jumped over the river?",
         parameters: {
           question: "Do you remember when the car jumped over the river?",
         },
-        output: "Hmm, I haven't thought about that before. Let me process it.",
       },
       {
         query: "What was the color of the car that hurt you in season 5?",
@@ -270,7 +268,6 @@ class Hippocampus implements HippocampusFactory {
           question: "What was the color of the car that hurt you?",
           season: 5,
         },
-        output: "Im not sure. Let me take a second to think about it.",
       },
     ],
     handler: async (data, originalRequest) => {

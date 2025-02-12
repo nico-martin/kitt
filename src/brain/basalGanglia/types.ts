@@ -7,10 +7,13 @@ export interface BasalGangliaFactory {
   addFunction: <T>(func: FunctionDefinition<T>) => void;
   evaluateNextStep: (
     request: string,
-    maxRounds?: number,
-    history?: Array<{ role: "function"; name: string; response: string }>,
-    startedAt?: Date,
-    round?: number
+    options?: {
+      maxRounds?: number;
+      history?: Array<{ role: "function"; name: string; response: string }>;
+      startedAt?: Date;
+      round?: number;
+      triggerStartSpeak?: (text: string) => Promise<void>;
+    }
   ) => Promise<string>;
 }
 
@@ -21,7 +24,6 @@ export interface FunctionDefinition<T> {
   examples: Array<{
     query: string;
     parameters: T;
-    output?: string;
   }>;
   handler: (
     data: T,
@@ -38,5 +40,5 @@ export const EvaluateNextStepResponseSchema = z.object({
     z.string(),
     z.union([z.string(), z.number(), z.boolean(), z.null()])
   ),
-  output: z.string().optional(),
+  finalAnswer: z.string().optional(),
 });

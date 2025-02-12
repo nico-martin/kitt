@@ -9,7 +9,6 @@ import SettingsModal from "@app/settings/SettingsModal.tsx";
 
 import cn from "@utils/classnames.ts";
 
-import Kokoro from "@brain/borcasArea/kokoro/Kokoro.ts";
 import { MotorCortexStatus } from "@brain/motorCortex/types.ts";
 import { BrainStatus } from "@brain/types.ts";
 import useBrain from "@brain/useBrain.ts";
@@ -33,6 +32,10 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
     () => brain.motorCortext.status
   );
   const [logOpen, setLogOpen] = React.useState<boolean>(false);
+  const volume: number = React.useSyncExternalStore(
+    (cb) => brain.borcasArea.onVolumeChange(cb),
+    () => brain.borcasArea.volume
+  );
 
   const setupAudioDevices = async () => {
     await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -190,12 +193,15 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
                 );
                 console.log("DONE go", go);*/
 
-                const k = new Kokoro();
+                /*brain.borcasArea.speak(
+                  "The novel 'Moby-Dick' was written by Herman Melville and first published in 1851. Hi there."
+                );*/
+                /*const k = new Kokoro();
                 await k.initialize(console.log);
                 k.speak(
                   "The novel 'Moby-Dick' was written by Herman Melville and first published in 1851. Hi there."
                 );
-                k.speak("This should start afterwards");
+                k.speak("This should start afterwards");*/
 
                 return;
                 //const query = window.prompt("Enter your query:");
@@ -229,7 +235,7 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
                   "Do you remember in season 1 when Michael fell asleep in the car and got pulled over by the police? What was your suggestion on how he should handle it?";
                 // In season 3 What is the connection between Sonny and the deadly poison gas exchange and did something tragic happen? (season 2, ep 8, scene id 4150)
                 // How does Bernie Mitchell present himself in season 2 at the party, and how does Nina Jurgenson react? (season 2, ep 13, scene id 2714)
-                // Why does Devon has so much experience escaping prisons?
+                // Do you remember why Devon has so much experience escaping prisons?
 
                 await brain.processQuery(query);
                 //const scenes = await brain.hippocampus.getMemory(query, 1);
@@ -247,7 +253,7 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
           </div>
         </div>
         {brainReady ? (
-          <Kitt className={styles.kitt} volume={0.5} />
+          <Kitt className={styles.kitt} volume={volume} />
         ) : (
           <Button
             className={styles.startButton}

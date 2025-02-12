@@ -29,6 +29,7 @@ class MotorCortex extends EventTarget {
   private _value: [number, number];
   private speed: number = 0;
   private turn: number = 0;
+  private pressedKey: string;
 
   constructor() {
     super();
@@ -67,6 +68,27 @@ class MotorCortex extends EventTarget {
     return () => this.removeEventListener("valueChanged", listener);
   };
 
+  private keydownListener = (event: KeyboardEvent) => {
+    if (this.pressedKey === event.key) {
+      return;
+    }
+
+    this.pressedKey = event.key;
+    if (event.key === "ArrowUp") {
+      this.send([200, 200]);
+    } else if (event.key === "ArrowDown") {
+      this.send([0, 0]);
+    } else if (event.key === "ArrowLeft") {
+      this.send([0, 200]);
+    } else if (event.key === "ArrowRight") {
+      this.send([200, 0]);
+    }
+  };
+  private keyupListener = () => {
+    this.pressedKey = null;
+    this.send([100, 100]);
+  };
+
   public connect = async () => {
     this.status = MotorCortexStatus.CONNECTING;
     const serviceUUid = "057b4ab6-2c6a-4138-b8e1-3529701d3f7a";
@@ -90,11 +112,15 @@ class MotorCortex extends EventTarget {
     const v = await this.characteristic.readValue();
     this.value = [v.getUint8(0), v.getUint8(1)];
     this.status = MotorCortexStatus.CONNECTED;
+    window.addEventListener("keydown", this.keydownListener);
+    window.addEventListener("keyup", this.keyupListener);
   };
 
   public disconnect = async () => {
     this.status = MotorCortexStatus.CONNECTING;
     this.device.gatt.disconnect();
+    window.removeEventListener("keydown", this.keydownListener);
+    window.removeEventListener("keyup", this.keyupListener);
   };
 
   private send = async (value: [number, number]) => {

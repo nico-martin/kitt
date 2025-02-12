@@ -60,17 +60,11 @@ export const VOICES = Object.freeze({
     name: "Daniel",
     language: "en-gb",
     gender: "Male",
-    traits: "🚹",
-    targetQuality: "C",
-    overallGrade: "D",
   },
   bm_fable: {
     name: "Fable",
     language: "en-gb",
     gender: "Male",
-    traits: "🚹",
-    targetQuality: "B",
-    overallGrade: "C",
   },
 });
 

@@ -27,10 +27,13 @@ class BasalGanglia implements BasalGangliaFactory {
 
   public evaluateNextStep = async (
     request: string,
-    maxRounds: number = 2,
-    history: Array<{ role: "function"; name: string; response: string }> = [],
-    startedAt: Date = new Date(),
-    round: number = 1
+    {
+      maxRounds = 3,
+      history = [],
+      startedAt = new Date(),
+      round = 1,
+      triggerStartSpeak = null,
+    }
   ): Promise<string> => {
     if (round > maxRounds) {
       Log.addEntry({
@@ -100,14 +103,14 @@ ${request}`
       (func) => func.name === responseCall.functionName
     );
 
-    if (!matchedFunction) {
-      if (responseCall.output) {
+    if (!matchedFunction || responseCall.finalAnswer) {
+      if (responseCall.finalAnswer) {
         const ended = new Date();
         Log.addEntry({
           category: "evaluateNextStep",
           title: "finalAnswer",
           message: [
-            { title: "", content: responseCall.output },
+            { title: "", content: responseCall.finalAnswer },
             {
               title: "Timing",
               content: `${(ended.getTime() - startedAt.getTime()) / 1000} seconds`,
@@ -115,7 +118,7 @@ ${request}`
           ],
         });
 
-        return responseCall.output;
+        return responseCall.finalAnswer;
       } else {
         Log.addEntry({
           category: "evaluateNextStep",
@@ -124,6 +127,19 @@ ${request}`
         });
         return "I am sorry, I could not find a final answer";
       }
+    }
+
+    if (
+      triggerStartSpeak &&
+      round === 1 &&
+      responseCall.functionName === "searchEpisode"
+    ) {
+      Log.addEntry({
+        category: "evaluateNextStep",
+        title: "triggerStartSpeak",
+        message: [{ title: "triggerStartSpeak", content: request }],
+      });
+      triggerStartSpeak(request);
     }
 
     const matchedFunctionParameters = matchedFunction.parameters.parse(
@@ -169,13 +185,13 @@ ${request}`
       response: toolCall.response,
     });
 
-    return this.evaluateNextStep(
-      request,
+    return this.evaluateNextStep(request, {
       maxRounds,
       history,
       startedAt,
-      round + 1
-    );
+      round: round + 1,
+      triggerStartSpeak,
+    });
 
     /*const finalAnswer = await answerAsKitt(finalPrompt);
     Log.addEntry({

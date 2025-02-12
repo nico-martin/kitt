@@ -14,7 +14,7 @@ const WORKER_LOG = false;
 // todo: add volume change
 
 class Kokoro extends EventTarget implements BorcasAreaFactory {
-  private _volume = 1;
+  private _volume = 0.2;
   private worker: Worker;
   private logger: (data: any) => any;
   private queue: Array<{ id: number; input: KokoroInput }> = [];
@@ -35,9 +35,7 @@ class Kokoro extends EventTarget implements BorcasAreaFactory {
       callback(this.volume);
     };
     this.addEventListener("volumeChange", listener);
-    return () => {
-      this.removeEventListener("volumeChange", listener);
-    };
+    return () => this.removeEventListener("volumeChange", listener);
   };
 
   constructor(logCallback: (data: any) => any = () => {}) {
@@ -79,6 +77,39 @@ class Kokoro extends EventTarget implements BorcasAreaFactory {
     new Promise((resolve, reject) => {
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
+      const audioContext = new (window.AudioContext ||
+        (window as any).webkitAudioContext)();
+      const source = audioContext.createMediaElementSource(audio);
+      const analyser = audioContext.createAnalyser();
+      source.connect(analyser);
+      analyser.connect(audioContext.destination);
+
+      analyser.fftSize = 256;
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      const logVolume = () => {
+        analyser.getByteFrequencyData(dataArray);
+        const minVolume = 0.1;
+        const maxVolume = 0.23;
+        const volume =
+          dataArray.reduce((a, b) => a + b, 0) / bufferLength / 255;
+        this.volume = Math.max(
+          0,
+          Math.min(1, (volume - minVolume) / (maxVolume - minVolume))
+        );
+
+        if (!audio.paused) {
+          requestAnimationFrame(logVolume);
+        }
+      };
+
+      audio.addEventListener("play", () => {
+        audioContext.resume().then(() => {
+          logVolume();
+        });
+      });
+
       audio.addEventListener("ended", () => {
         URL.revokeObjectURL(url);
         resolve();

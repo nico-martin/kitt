@@ -10,10 +10,9 @@ const formatExample = (
   example: {
     query: string;
     parameters: Object;
-    output?: string;
   }
 ) =>
-  `- "${example.query}" -> Output: ${JSON.stringify({ functionName, parameters: example.parameters, output: example.output || "" })}`;
+  `- "${example.query}" -> Output: ${JSON.stringify({ functionName, parameters: example.parameters })}`;
 
 export const evaluateNextStepSystemPrompt = (
   functions: Array<FunctionDefinition<any>>
@@ -47,7 +46,6 @@ If you need to call a function, return a JSON object in this format:
   "parameters": {
     "paramName": "value"
   },
-  "output": "{explain very briefly what you are going to do next}",
 }
 \`\`\` 
 
@@ -56,7 +54,7 @@ If you dont need to call a tool to answer the question, return the following:
 {
   "functionName": null,
   "parameters": {},
-  "output": "{Your final answer}",
+  "finalAnswer": "{Your final answer}",
 }
 \`\`\` 
 
@@ -72,7 +70,7 @@ Always answer in the following format:
 {
   "functionName": null,
   "parameters": {},
-  "output": "{Your final answer}",
+  "finalAnswer": "{Your final answer}",
 }`;
 
 export const answerAsKittSystemPrompt = () => `${role()}

@@ -36,14 +36,6 @@ class Brain extends EventTarget {
     this.basalGanglia.addFunction(this.hippocampus.memoryAgentFunction);
     this.basalGanglia.addFunction(this.motorCortext.changeDirectionFunction);
     this.basalGanglia.addFunction(this.motorCortext.changeSpeedFunction);
-
-    /*console.log(
-      evaluateNextStepSystemPrompt([
-        this.hippocampus.memoryAgentFunction,
-        this.motorCortext.changeDirectionFunction,
-        this.motorCortext.changeSpeedFunction,
-      ])
-    );*/
   }
 
   public get status(): BrainStatus {
@@ -125,8 +117,9 @@ class Brain extends EventTarget {
           }
           text = text.replace(/kid/gi, "KITT");
           this.status = BrainStatus.SPEAKING;
-          //this.triggerStartSpeak(text);
-          const response = await this.basalGanglia.evaluateNextStep(text);
+          const response = await this.basalGanglia.evaluateNextStep(text, {
+            triggerStartSpeak: this.triggerStartSpeak,
+          });
           await this.borcasArea.speak(response);
           this.status = BrainStatus.READY;
         });
@@ -218,7 +211,7 @@ class Brain extends EventTarget {
       );
     }
 
-    return this.basalGanglia.evaluateNextStep(query, 4);
+    return this.basalGanglia.evaluateNextStep(query, { maxRounds: 4 });
   };
 }
 
