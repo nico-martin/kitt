@@ -12,7 +12,14 @@ export interface BasalGangliaFactory {
       history?: Array<{ role: "function"; name: string; response: string }>;
       startedAt?: Date;
       round?: number;
-      triggerStartSpeak?: (text: string) => Promise<void>;
+    }
+  ) => Promise<string>;
+  startConversation: (
+    request: string,
+    speak: (i: string) => void,
+    options?: {
+      maxRounds?: number;
+      startedAt?: Date;
     }
   ) => Promise<string>;
 }

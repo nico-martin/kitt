@@ -183,10 +183,10 @@ class MotorCortex extends EventTarget {
         query: "I think wee need to slow down a bit",
         parameters: { speed: 50 },
       },
-      {
+      /*{
         query: "We need to stop right now",
         parameters: { speed: 0 },
-      },
+      },*/
       {
         query: "Please stop",
         parameters: { speed: 0 },

@@ -206,6 +206,11 @@ class DB {
     return db.count("scenes");
   };
 
+  public getScenes = async (): Promise<Array<Scene>> => {
+    const db = await this.getDb();
+    return db.getAll("scenes");
+  };
+
   public clearAll = async () => {
     const db = await this.getDb();
     await db.clear("episodes");

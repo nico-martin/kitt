@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const getFieldType = (
+export const getFieldType = (
   fieldSchema: z.ZodType<any>
 ): "number" | "string" | "boolean" | "unknown" => {
   if (fieldSchema instanceof z.ZodNumber) {

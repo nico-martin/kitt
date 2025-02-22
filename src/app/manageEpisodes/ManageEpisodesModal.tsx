@@ -1,11 +1,12 @@
-import { EpisodesDB } from "@brain/hippocampus/episodesDB/db";
-import { Episode } from "@brain/hippocampus/episodesDB/db/types.ts";
-import useBrain from "@brain/useBrain.ts";
 import { Button, Form, FormElement, Modal } from "@theme";
 import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
 import { formatNumber, nl2br } from "@utils/formatters";
+
+import { EpisodesDB } from "@brain/hippocampus/episodesDB/db";
+import { Episode } from "@brain/hippocampus/episodesDB/db/types.ts";
+import useBrain from "@brain/useBrain.ts";
 
 import styles from "./ManageEpisodesModal.module.css";
 
@@ -83,6 +84,8 @@ const ManageEpisodesModal: React.FC<{
       const actScenes = await EpisodesDB.getScenesByAct(act.id);
       const scenes: Array<EpScene> = [];
       for (const scene of actScenes) {
+        console.log(scene?.summaries?.length);
+        (scene?.summaries?.length || 0) >= 2 && console.log(scene);
         scenes.push({
           title: `${act.actNumber}-${scene.sceneNumber} (${scene.id})`,
           text: scene.text || "",

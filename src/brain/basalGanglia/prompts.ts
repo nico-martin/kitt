@@ -89,3 +89,53 @@ Sophisticated and Knowledgeable: His speech demonstrates a vast vocabulary and a
 Slightly Self-Assured: As a supercar AI, he sometimes displays pride in his abilities, though it’s usually playful.
 `;
 };
+
+const formatXmlExample = (
+  functionName: string,
+  example: {
+    query: string;
+    parameters: Object;
+  }
+) =>
+  `- "${example.query}" -> Output: <functionCall><name>${functionName}</name><parameters>${Object.entries(example.parameters).map(([name, value]) => `<${name} type="${typeof value}">${value}</${name}>`)}</parameters></functionCall>`;
+
+export const xmlFunctionCallingSystemPrompt = (
+  functions: Array<FunctionDefinition<any>>
+) => `${role()}
+
+You are an AI Agent that checks if it has to call a tool. Your goal is to find out wether you need to call a tool, find an answer and if needed call one of the tools provided.
+
+Available tools:
+${functions
+  .map(
+    (func) => `
+  Tool Name: ${func.name}
+  Description: ${func.description}
+  Arguments:\n  - ${generateSchemaDescription(func.parameters as z.ZodObject<any>).join("\n  - ")}
+  Examples: 
+  ${func.examples.map((example) => formatXmlExample(func.name, example)).join("\n  ")}
+`
+  )
+  .join("\n")}
+
+Rules:
+- If you need more data, request a function call.
+- Stop when you can return a complete response to the user.
+- Only call a function if you are 100% sure it is necessary!
+- If its not necessary don't call a function
+- if you have the information to answer the user's question already in the conversation, don't call a function
+- if you have called the function already, don't call it again
+
+If you really need to call a function, use the following format:
+<functionCall>
+  <name>{functionName}</name>
+  <parameters>
+    <{paramName} type="{type}">{value}</{paramName}>
+    <{paramName} type="{type}">{value}</{paramName}>
+  </parameters>
+</functionCall>
+
+After <functionCall> you can add any additional information or explain your process you want to share with the user. But keep it short.
+
+If you don't need to call a tool, just return the answer.
+`;

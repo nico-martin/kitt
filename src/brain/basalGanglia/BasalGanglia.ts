@@ -7,13 +7,14 @@ import LLM from "@utils/llm/llm.ts";
 import {
   evaluateNextStepSystemPrompt,
   generateFinalAnswerSystemPrompt,
-} from "@brain/basalGanglia/prompts.ts";
-
+  xmlFunctionCallingSystemPrompt,
+} from "./prompts.ts";
 import {
   BasalGangliaFactory,
   EvaluateNextStepResponseSchema,
   FunctionDefinition,
 } from "./types.ts";
+import extractXmlFunctionCalls from "./utils/extractXmlFunctionCalls.ts";
 
 class BasalGanglia implements BasalGangliaFactory {
   public llm = LLM;
@@ -25,15 +26,157 @@ class BasalGanglia implements BasalGangliaFactory {
     this.functions.push(func);
   };
 
+  public startConversation = async (
+    request: string,
+    speak: (input: string) => void,
+    { maxRounds = 4, startedAt = new Date() } = {}
+  ) => {
+    const systemPrompt = xmlFunctionCallingSystemPrompt(this.functions);
+    const conversation = this.llm.createConversation(systemPrompt, 0);
+    const calledFunctions: Array<string> = [];
+
+    /*
+    console.log("SYSTEM");
+    console.log(systemPrompt);
+     */
+
+    Log.addEntry({
+      category: "kittConversation",
+      title: `started`,
+      message: [
+        {
+          title: "systemPrompt",
+          content: systemPrompt,
+        },
+      ],
+    });
+
+    const generate = async (query: string, round: number = 1) => {
+      if (round > maxRounds) {
+        Log.addEntry({
+          category: "kittConversation",
+          title: "Error: Max rounds reached",
+          message: [
+            {
+              title: "Error",
+              content: `Max rounds reached: ${round} of ${maxRounds}`,
+            },
+          ],
+        });
+        return "I am sorry, I could not find a final answer.";
+      }
+
+      /*
+      console.log("USER");
+      console.log(query);
+       */
+
+      const response = await conversation.generate(query);
+      const parsed = extractXmlFunctionCalls(response.output);
+
+      /*
+      console.log("AI");
+      console.log(response.output);
+       */
+
+      Log.addEntry({
+        category: "kittConversation",
+        title: `generate response (Round ${round})`,
+        message: [
+          { title: "Query", content: query },
+          {
+            title: "Raw response",
+            content: response.output,
+          },
+          {
+            title: "Parsed response",
+            content: parsed,
+          },
+        ],
+      });
+
+      const functionsToCall = parsed.functionCalls
+        .map((call) => {
+          const matchedFunction = this.functions.find(
+            (func) => func.name === call.name
+          );
+
+          const alreadyCalled = calledFunctions.includes(call.name);
+
+          if (matchedFunction && !alreadyCalled) {
+            try {
+              const matchedFunctionParameters =
+                matchedFunction.parameters.parse(call.parameters);
+              return {
+                name: matchedFunction.name,
+                handler: matchedFunction.handler,
+                parameters: matchedFunctionParameters,
+              };
+            } catch (e) {
+              console.error(e);
+              return null;
+            }
+          } else {
+            return null;
+          }
+        })
+        .filter(Boolean);
+
+      if (functionsToCall.length === 0) {
+        const ended = new Date();
+        Log.addEntry({
+          category: "kittConversation",
+          title: "finalAnswer",
+          message: [
+            { title: "", content: parsed.cleanText },
+            {
+              title: "Timing",
+              content: `${(ended.getTime() - startedAt.getTime()) / 1000} seconds`,
+            },
+          ],
+        });
+        return parsed.cleanText;
+      } else {
+        speak(parsed.cleanText);
+        const results = await Promise.all(
+          functionsToCall.map(async (func) => {
+            const toolCall = await func.handler(func.parameters, request);
+            return toolCall.response;
+          })
+        );
+
+        functionsToCall.forEach((func) => {
+          calledFunctions.push(func.name);
+        });
+        Log.addEntry({
+          category: "kittConversation",
+          title: `function results`,
+          message: results.map((r, i) => ({
+            title:
+              functionsToCall[i].name +
+              ": " +
+              Object.entries(functionsToCall[i].parameters)
+                .map(([key, value]) => `${key}: ${value}`)
+                .join(", "),
+            content: r,
+          })),
+        });
+
+        return await generate(
+          results
+            .map((r, i) => `${functionsToCall[i].name} result:\n\n${r}`)
+            .join("\n\n"),
+          round + 1
+        );
+      }
+    };
+
+    return await generate(request);
+  };
+
   public evaluateNextStep = async (
     request: string,
-    {
-      maxRounds = 3,
-      history = [],
-      startedAt = new Date(),
-      round = 1,
-      triggerStartSpeak = null,
-    }
+    { maxRounds = 3, history = [], startedAt = new Date(), round = 1 }
   ): Promise<string> => {
     if (round > maxRounds) {
       Log.addEntry({
@@ -129,19 +272,6 @@ ${request}`
       }
     }
 
-    if (
-      triggerStartSpeak &&
-      round === 1 &&
-      responseCall.functionName === "searchEpisode"
-    ) {
-      Log.addEntry({
-        category: "evaluateNextStep",
-        title: "triggerStartSpeak",
-        message: [{ title: "triggerStartSpeak", content: request }],
-      });
-      triggerStartSpeak(request);
-    }
-
     const matchedFunctionParameters = matchedFunction.parameters.parse(
       responseCall.parameters
     );
@@ -190,7 +320,6 @@ ${request}`
       history,
       startedAt,
       round: round + 1,
-      triggerStartSpeak,
     });
 
     /*const finalAnswer = await answerAsKitt(finalPrompt);

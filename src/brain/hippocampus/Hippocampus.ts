@@ -250,7 +250,7 @@ class Hippocampus implements HippocampusFactory {
       "Search through all the Seasons, Episodes and Scenes from the Knight-Ride Series to find Memories to answer questions about KITT's past. Not the present!",
     parameters: memoryAgentFunctionParametersSchema,
     examples: [
-      {
+      /*{
         query: "Why is devon so good at escaping prisons?",
         parameters: {
           question: "Do you remember when the car jumped over the river?",
@@ -261,7 +261,7 @@ class Hippocampus implements HippocampusFactory {
         parameters: {
           question: "Do you remember when the car jumped over the river?",
         },
-      },
+      },*/
       {
         query: "What was the color of the car that hurt you in season 5?",
         parameters: {
@@ -317,9 +317,9 @@ class Hippocampus implements HippocampusFactory {
 
       const bestResults = [
         results[reranked[0].corpus_id].entry,
-        results[reranked[1].corpus_id].entry,
-        results[reranked[2].corpus_id].entry,
-      ];
+        results[reranked[1]?.corpus_id]?.entry,
+        results[reranked[2]?.corpus_id]?.entry,
+      ].filter(Boolean);
 
       Log.addEntry({
         category: "searchEpisode",
