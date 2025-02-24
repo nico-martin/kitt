@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const getFieldType = (
   fieldSchema: z.ZodType<any>
-): "number" | "string" | "boolean" | "unknown" => {
+): "number" | "string" | "boolean" | "unknown" | string => {
   if (fieldSchema instanceof z.ZodNumber) {
     return "number";
   } else if (fieldSchema instanceof z.ZodString) {
@@ -11,6 +11,11 @@ export const getFieldType = (
     return "boolean";
   } else if (fieldSchema instanceof z.ZodOptional) {
     return getFieldType(fieldSchema.unwrap());
+  } else if (fieldSchema instanceof z.ZodUnion) {
+    return (fieldSchema._def?.options || [])
+      .map((option) => option._def.value)
+      .map((v) => `"${v}"`)
+      .join(" | ");
   } else if (fieldSchema instanceof z.ZodTransformer) {
     return getFieldType(fieldSchema._def.schema);
   } else {

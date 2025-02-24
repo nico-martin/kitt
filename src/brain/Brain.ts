@@ -34,7 +34,7 @@ class Brain extends EventTarget {
   public constructor() {
     super();
     this.basalGanglia.addFunction(this.hippocampus.memoryAgentFunction);
-    this.basalGanglia.addFunction(this.motorCortext.changeDirectionFunction);
+    this.basalGanglia.addFunction(this.motorCortext.makeTurnFunction);
     this.basalGanglia.addFunction(this.motorCortext.changeSpeedFunction);
   }
 

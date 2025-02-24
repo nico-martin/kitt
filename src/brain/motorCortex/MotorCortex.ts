@@ -14,11 +14,10 @@ const motorSpeedParameterSchema = z.object({
     .transform((val) => Math.max(-100, Math.min(100, val))),
 });
 
-const motorDirectionParameterSchema = z.object({
+const motorTurnParameterSchema = z.object({
   direction: z
-    .number()
-    .describe("Direction of the car, min -90, max 90")
-    .transform((val) => Math.max(-90, Math.min(90, val))),
+    .union([z.literal("left"), z.literal("right")])
+    .describe("Make a turn 'left' or 'right'"),
 });
 
 class MotorCortex extends EventTarget {
@@ -84,9 +83,16 @@ class MotorCortex extends EventTarget {
       this.send([200, 0]);
     }
   };
+
   private keyupListener = () => {
-    this.pressedKey = null;
-    this.send([100, 100]);
+    if (
+      ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(
+        this.pressedKey
+      )
+    ) {
+      this.pressedKey = null;
+      this.send([100, 100]);
+    }
   };
 
   public connect = async () => {
@@ -172,7 +178,8 @@ class MotorCortex extends EventTarget {
     z.infer<typeof motorSpeedParameterSchema>
   > = {
     name: "changeSpeed",
-    description: "Change the speed of the car",
+    description:
+      "Change the speed of the car. Your current Speed is " + this.speed,
     parameters: motorSpeedParameterSchema,
     examples: [
       {
@@ -183,10 +190,6 @@ class MotorCortex extends EventTarget {
         query: "I think wee need to slow down a bit",
         parameters: { speed: 50 },
       },
-      /*{
-        query: "We need to stop right now",
-        parameters: { speed: 0 },
-      },*/
       {
         query: "Please stop",
         parameters: { speed: 0 },
@@ -205,7 +208,11 @@ class MotorCortex extends EventTarget {
       });
       const boundarySpeed = speed < -100 ? -100 : speed > 100 ? 100 : speed;
       if (this.status === MotorCortexStatus.CONNECTED) {
-        await this.changeSpeed(boundarySpeed);
+        //await this.changeSpeed(boundarySpeed);
+        await this.send([boundarySpeed + 100, boundarySpeed + 100]);
+        new Promise((resolve) => setTimeout(resolve, 2000)).then(() =>
+          this.send([100, 100])
+        );
         Log.addEntry({
           category: "changeSpeed",
           title: "changeSpeed",
@@ -238,36 +245,27 @@ class MotorCortex extends EventTarget {
     },
   };
 
-  public changeDirectionFunction: FunctionDefinition<
-    z.infer<typeof motorDirectionParameterSchema>
+  public makeTurnFunction: FunctionDefinition<
+    z.infer<typeof motorTurnParameterSchema>
   > = {
-    name: "changeDirection",
-    description: "Change the direction of the car",
-    parameters: motorDirectionParameterSchema,
+    name: "make Turn",
+    description: "Change the direction of the car.",
+    parameters: motorTurnParameterSchema,
     examples: [
-      { query: "Let's turn left", parameters: { direction: -90 } },
-      { query: "Let's turn right", parameters: { direction: 90 } },
-      { query: "Let's go straight", parameters: { direction: 0 } },
+      { query: "Let's turn left", parameters: { direction: "left" } },
+      { query: "Let's turn right", parameters: { direction: "right" } },
     ],
     handler: async ({ direction }) => {
       Log.addEntry({
-        category: "changeDirection",
+        category: "makeTurn",
         title: "call function with",
         message: [{ title: "data", content: direction }],
       });
 
-      const boundaryDirection =
-        direction < -90 ? -90 : direction > 90 ? 90 : direction;
-      if (this.status === MotorCortexStatus.CONNECTED) {
-        await this.changeTurn(boundaryDirection);
+      let response = "";
+      if (this.status !== MotorCortexStatus.CONNECTED) {
         Log.addEntry({
-          category: "changeDirection",
-          title: "changeDirection",
-          message: [{ title: "data", content: boundaryDirection }],
-        });
-      } else {
-        Log.addEntry({
-          category: "changeDirection",
+          category: "makeTurn",
           title: "not connected",
           message: [
             {
@@ -276,14 +274,24 @@ class MotorCortex extends EventTarget {
             },
           ],
         });
+        response = "Tell the user that you are not connected to the car";
+      } else {
+        const waitFor90Degrees = 800;
+        if (direction === "left") {
+          await this.send([100, 200]);
+          new Promise((resolve) => setTimeout(resolve, waitFor90Degrees)).then(
+            () => this.send([100, 100])
+          );
+          response = "tell the user that you turned left";
+        }
+        if (direction === "right") {
+          await this.send([200, 100]);
+          new Promise((resolve) => setTimeout(resolve, waitFor90Degrees)).then(
+            () => this.send([100, 100])
+          );
+          response = "tell the user that you turned right";
+        }
       }
-
-      const response =
-        this.status !== MotorCortexStatus.CONNECTED
-          ? "Tell the user that you are not connected to the car"
-          : boundaryDirection === 0
-            ? "tell the user that your direction changed to straight"
-            : `tell the user that your direction changed to ${boundaryDirection}°`;
 
       Log.addEntry({
         category: "changeDirection",
