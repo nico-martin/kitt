@@ -65,6 +65,7 @@
       "^@utils/(.*)$",
       "^@brain/(.*)$",
       "^@log/(.*)$",
+      "^@agentLog/(.*)$",
       "^[./]"
     ],
     "importOrderSeparation": true,

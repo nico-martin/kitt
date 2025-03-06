@@ -1,9 +1,11 @@
+import AgentLog from "@agentLog";
 import Log from "@log";
 
 import cleanUpJsonObject from "@utils/cleanUpJsonObject.ts";
 import answerAsKitt from "@utils/llm/answerAsKitt.ts";
 import LLM from "@utils/llm/llm.ts";
 
+import { AgentType } from "../../agentLog/types.ts";
 import {
   evaluateNextStepSystemPrompt,
   generateFinalAnswerSystemPrompt,
@@ -35,10 +37,21 @@ class BasalGanglia implements BasalGangliaFactory {
     const conversation = this.llm.createConversation(systemPrompt, 0);
     const calledFunctions: Array<string> = [];
 
+    AgentLog.clearLog();
+
     /*
     console.log("SYSTEM");
     console.log(systemPrompt);
      */
+    AgentLog.addEntry({
+      type: AgentType.SYSTEM,
+      content: systemPrompt,
+    });
+
+    AgentLog.addEntry({
+      type: AgentType.USER,
+      content: request,
+    });
 
     Log.addEntry({
       category: "kittConversation",
@@ -71,8 +84,29 @@ class BasalGanglia implements BasalGangliaFactory {
       console.log(query);
        */
 
-      const response = await conversation.generate(query);
+      const responseEntry = AgentLog.addEntry({
+        type: AgentType.AGENT,
+        content: "",
+      });
+
+      const response = await conversation.generate(query, (resp) => {
+        AgentLog.updateEntry(responseEntry, {
+          content: resp.output,
+        });
+      });
       const parsed = extractXmlFunctionCalls(response.output);
+      AgentLog.updateEntry(responseEntry, {
+        parsed: {
+          content: parsed.cleanText,
+          functions: parsed.functionCalls.map((call) => ({
+            name: call.name,
+            args: Object.entries(call.parameters).map(([key, value]) => ({
+              name: key,
+              value: value,
+            })),
+          })),
+        },
+      });
 
       /*
       console.log("AI");
@@ -160,6 +194,13 @@ class BasalGanglia implements BasalGangliaFactory {
                 .join(", "),
             content: r,
           })),
+        });
+
+        AgentLog.addEntry({
+          type: AgentType.FUNCTION,
+          content: results
+            .map((r, i) => `${functionsToCall[i].name} result:\n\n${r}`)
+            .join("\n\n"),
         });
 
         return await generate(

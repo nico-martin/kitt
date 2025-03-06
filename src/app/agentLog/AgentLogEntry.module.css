@@ -1,0 +1,88 @@
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+.bubble {
+  background-color: #232323;
+  border: 1px solid #4e4e4e;
+  border-radius: 0.5rem;
+  color: #fff;
+  padding: 0.5rem;
+  margin: 0.5rem;
+  width: 90%;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+
+  &.bubbleIsAgent {
+    align-self: flex-end;
+  }
+}
+
+.bubbleContent,
+.parsed {
+  font-weight: 100;
+  font: var(--font);
+  font-size: 14px;
+}
+
+.entryType {
+  font-size: 12px;
+  margin-bottom: 10px;
+  opacity: 0.5;
+  font-weight: 100;
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+
+.entryTypeIcon {
+  scale: 1.3;
+}
+
+.thinking {
+  opacity: 0.5;
+}
+
+.controls {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.control {
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px !important;
+  margin-top: 0.5rem;
+  font-weight: 100;
+  font: var(--font);
+  align-self: flex-end;
+  line-height: 1;
+
+  & + .control {
+    margin-left: 1em;
+    padding-left: 1em;
+    border-left: 1px solid #fff;
+  }
+}
+
+.parsedFunctions {
+  margin-top: 1em;
+}
+
+.parsedFunctionsTitle {
+  font-weight: bold;
+}
+
+ul.parsedFunctionsList {
+  margin-top: 0.2em;
+  padding-left: 1em !important;
+  list-style: disc !important;
+
+  ul {
+    margin-top: 0.2em;
+    padding-left: 1em !important;
+    list-style: circle !important;
+  }
+}

@@ -41,6 +41,9 @@
       ],
       "@log": [
         "./src/log/index.ts"
+      ],
+      "@agentLog": [
+        "./src/agentLog/index.ts"
       ]
     }
   },

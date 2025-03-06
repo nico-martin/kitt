@@ -3,7 +3,8 @@ import React from "react";
 
 import ConnectCar from "@app/ConnectCar.tsx";
 import Listener from "@app/Listener.tsx";
-import Log from "@app/log/Log.tsx";
+//import Log from "@app/log/Log.tsx";
+import AgentLog from "@app/agentLog/AgentLog.tsx";
 import ManageEpisodesModal from "@app/manageEpisodes/ManageEpisodesModal.tsx";
 import SettingsModal from "@app/settings/SettingsModal.tsx";
 
@@ -121,7 +122,7 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
 
   return (
     <React.Fragment>
-      <Log
+      <AgentLog
         toggleOpen={() => setLogOpen(!logOpen)}
         className={cn(styles.log, { [styles.logOpen]: logOpen })}
       />
