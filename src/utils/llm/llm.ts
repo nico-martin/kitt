@@ -5,6 +5,7 @@ import Gemini from "./gemini/Gemini.ts";
 import { LlmFactoryI } from "./types.ts";
 import webLlmGemma2_2b from "./webllm/webLlmGemma2_2b.ts";
 import webLlmGemma2_9b from "./webllm/webLlmGemma2_9b.ts";
+import webLlmGemma3_4b from "./webllm/webLlmGemma3_4b.ts";
 import webLlmLlama3_2_3B from "./webllm/webLlmLlama3_2_3B.ts";
 
 const LLM: LlmFactoryI =
@@ -12,8 +13,10 @@ const LLM: LlmFactoryI =
     ? Gemini
     : getSetting("llmProvider") === LlmProvider.GEMMA2_9B
       ? webLlmGemma2_9b
-      : getSetting("llmProvider") === LlmProvider.LLAMA_3_2_3B
-        ? webLlmLlama3_2_3B
-        : webLlmGemma2_2b;
+      : getSetting("llmProvider") === LlmProvider.GEMMA3_4B
+        ? webLlmGemma3_4b
+        : getSetting("llmProvider") === LlmProvider.LLAMA_3_2_3B
+          ? webLlmLlama3_2_3B
+          : webLlmGemma2_2b;
 
 export default LLM;
