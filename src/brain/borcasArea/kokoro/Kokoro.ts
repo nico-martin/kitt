@@ -38,7 +38,7 @@ class Kokoro extends EventTarget implements BorcasAreaFactory {
     return () => this.removeEventListener("volumeChange", listener);
   };
 
-  constructor(logCallback: (data: any) => any = () => {}) {
+  constructor(logCallback: (data: any) => any = console.log) {
     super();
 
     this.worker = new Worker(new URL("./kokoroWorker.ts", import.meta.url), {
@@ -138,10 +138,16 @@ class Kokoro extends EventTarget implements BorcasAreaFactory {
       status: QueueStatus.PENDING,
       statusText: "Pending...",
     });
+
     const parts = splitBySentence(activeElement.input.text);
 
     const processAndPlayAll = (parts: Array<string>): Promise<void> =>
       new Promise((resolve, reject) => {
+        if (parts.length === 0) {
+          resolve();
+          return;
+        }
+
         try {
           const audios: Array<Blob> = new Array(parts.length).fill(null);
           let isPlaying = false;
@@ -168,6 +174,7 @@ class Kokoro extends EventTarget implements BorcasAreaFactory {
                 ...activeElement.input,
                 text: part,
               });
+
               maybePlayNext();
               i++;
             }
@@ -222,6 +229,10 @@ class Kokoro extends EventTarget implements BorcasAreaFactory {
     callback: (data: any) => void = () => {}
   ): Promise<void> =>
     new Promise((resolve, reject) => {
+      if (text.trim() === "") {
+        resolve();
+        return;
+      }
       this.id++;
       const id = this.id;
       this.queue.push({ id, input: { text, voice: "bm_daniel" } });

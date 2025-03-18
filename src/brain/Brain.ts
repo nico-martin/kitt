@@ -111,7 +111,7 @@ class Brain extends EventTarget {
         isSpacePressed = false;
         this.status = BrainStatus.THINKING;
         listener.end().then(async (text) => {
-          if (!text || text === "[BLANK_AUDIO]") {
+          if (!text || text === "[BLANK_AUDIO]" || text.trim() === "") {
             this.status = BrainStatus.READY;
             return;
           }

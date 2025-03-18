@@ -135,7 +135,7 @@ If you really need to call a function, use the following format:
   </parameters>
 </functionCall>
 
-After <functionCall> you can add any additional information or explain your process you want to share with the user. But keep it short.
+After <functionCall> you have to add any additional information or explain your process you want to share with the user. If you call a function, explain why you are calling it (because you want to move? Because you need more informations?) But keep it short.
 
 If you don't need to call a tool, just return the answer.
 `;
