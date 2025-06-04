@@ -21,16 +21,16 @@ export enum TextToSpeechProvider {
 export enum LlmProvider {
   GEMMA2_2B = "gemma2_2b",
   GEMMA2_9B = "gemma2_9b",
-  LLAMA_3_2_3B = "llama_3_2_3b",
   QWEN = "Qwen3",
+  SmolLM2 = "SmolLM2",
   GEMINI = "gemini",
 }
 
 export const LLM_NAMES: Record<LlmProvider, string> = {
   [LlmProvider.GEMMA2_2B]: "Gemma2 2b (local)",
   [LlmProvider.GEMMA2_9B]: "Gemma2 9b (local)",
-  [LlmProvider.LLAMA_3_2_3B]: "Llama-3.2-3B-Instruct (local)",
-  [LlmProvider.QWEN]: "Qwen 3 (local)",
+  [LlmProvider.QWEN]: "Qwen3 4B (local)",
+  [LlmProvider.SmolLM2]: "SmolLM2 1.7B IT (local)",
   [LlmProvider.GEMINI]: "Gemini (cloud)",
 };
 

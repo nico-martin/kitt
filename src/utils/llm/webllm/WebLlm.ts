@@ -183,10 +183,9 @@ class WebLlm extends EventTarget implements LlmFactoryI {
           const removeListener = this.onGenerateUpdate(
             requestID,
             (data: GenerateCallbackData) => {
+              data.stats && console.log(data?.stats?.extra);
               callback({
-                output: data.output
-                  .replace("<think>", "")
-                  .replace("</think>", ""),
+                output: data.output.replace("<think>\n\n</think>\n\n", ""),
                 stats: {
                   outputTokens: data.stats?.completion_tokens || 0,
                   inputTokens: data.stats?.prompt_tokens || 0,
@@ -194,9 +193,7 @@ class WebLlm extends EventTarget implements LlmFactoryI {
               });
               if (data.status === "DONE") {
                 resolve({
-                  output: data.output
-                    .replace("<think>", "")
-                    .replace("</think>", ""),
+                  output: data.output.replace("<think>\n\n</think>\n\n", ""),
                   stats: {
                     outputTokens: data.stats?.completion_tokens || 0,
                     inputTokens: data.stats?.prompt_tokens || 0,
