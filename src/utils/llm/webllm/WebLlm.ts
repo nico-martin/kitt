@@ -172,6 +172,9 @@ class WebLlm extends EventTarget implements LlmFactoryI {
               temperature,
               stream: true,
               stream_options: { include_usage: true },
+              extra_body: {
+                enable_thinking: false,
+              },
             },
           });
           callback({ output: "" });
@@ -181,7 +184,9 @@ class WebLlm extends EventTarget implements LlmFactoryI {
             requestID,
             (data: GenerateCallbackData) => {
               callback({
-                output: data.output,
+                output: data.output
+                  .replace("<think>", "")
+                  .replace("</think>", ""),
                 stats: {
                   outputTokens: data.stats?.completion_tokens || 0,
                   inputTokens: data.stats?.prompt_tokens || 0,
@@ -189,7 +194,9 @@ class WebLlm extends EventTarget implements LlmFactoryI {
               });
               if (data.status === "DONE") {
                 resolve({
-                  output: data.output,
+                  output: data.output
+                    .replace("<think>", "")
+                    .replace("</think>", ""),
                   stats: {
                     outputTokens: data.stats?.completion_tokens || 0,
                     inputTokens: data.stats?.prompt_tokens || 0,

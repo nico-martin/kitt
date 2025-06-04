@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@huggingface/transformers": "^3.3.3",
-    "@mlc-ai/web-llm": "^0.2.77",
+    "@mlc-ai/web-llm": "^0.2.79",
     "@nico-martin/screenplay-parser": "^1.0.8",
     "cheerio": "^1.0.0",
     "idb": "^8.0.1",

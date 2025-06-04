@@ -6,6 +6,7 @@ import { LlmFactoryI } from "./types.ts";
 import webLlmGemma2_2b from "./webllm/webLlmGemma2_2b.ts";
 import webLlmGemma2_9b from "./webllm/webLlmGemma2_9b.ts";
 import webLlmLlama3_2_3B from "./webllm/webLlmLlama3_2_3B.ts";
+import qwen from "./webllm/webLlmQwen3_4.ts";
 
 const LLM: LlmFactoryI =
   getSetting("llmProvider") === LlmProvider.GEMINI
@@ -14,6 +15,8 @@ const LLM: LlmFactoryI =
       ? webLlmGemma2_9b
       : getSetting("llmProvider") === LlmProvider.LLAMA_3_2_3B
         ? webLlmLlama3_2_3B
-        : webLlmGemma2_2b;
+        : getSetting("llmProvider") === LlmProvider.QWEN
+          ? qwen
+          : webLlmGemma2_2b;
 
 export default LLM;
