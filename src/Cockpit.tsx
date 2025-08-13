@@ -20,6 +20,7 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
   const { status: brainStatus, ready: brainReady, brain } = useBrain();
   const [manageEpisodesModal, setManageEpisodesModal] =
     React.useState<boolean>(false);
+  const [reloading, setReloading] = React.useState<boolean>(false);
   const [settingsModal, setSettingsModal] = React.useState<boolean>(false);
   const [auditoryCortexProgress, setAuditoryCortexProgress] =
     React.useState<number>(0);
@@ -179,78 +180,19 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
               Memories
             </Button>
             <Button
-              disabled={true}
+              disabled={reloading}
               color="yellow"
               onClick={async () => {
-                /*const hi = await brain.processQuery(
-                  "Hi KITT, how are you today?"
+                setReloading(true);
+                await brain.wakeUp(
+                  () => {},
+                  () => {},
+                  () => {}
                 );
-                console.log("DONE hi", hi);
-                const search = await brain.processQuery(
-                  "In season 3 What is the connection between Sonny and the deadly poison gas exchange and did something tragic happen?"
-                );
-                console.log("DONE search", search);
-                const go = await brain.processQuery(
-                  "I think we should go out of here as fast as possible"
-                );
-                console.log("DONE go", go);*/
-
-                /*brain.borcasArea.speak(
-                  "The novel 'Moby-Dick' was written by Herman Melville and first published in 1851. Hi there."
-                );*/
-                /*const k = new Kokoro();
-                await k.initialize(console.log);
-                k.speak(
-                  "The novel 'Moby-Dick' was written by Herman Melville and first published in 1851. Hi there."
-                );
-                k.speak("This should start afterwards");*/
-
-                //return;
-                //const query = window.prompt("Enter your query:");
-
-                /*console.log("RERANKER");
-              const compareWith = "Who wrote 'To Kill a Mockingbird'?";
-              const texts = [
-                "'To Kill a Mockingbird' is a novel by Harper Lee published in 1960. It was immediately successful, winning the Pulitzer Prize, and has become a classic of modern American literature.",
-                "The novel 'Moby-Dick' was written by Herman Melville and first published in 1851. It is considered a masterpiece of American literature and deals with complex themes of obsession, revenge, and the conflict between good and evil.",
-                "Harper Lee, an American novelist widely known for her novel 'To Kill a Mockingbird', was born in 1926 in Monroeville, Alabama. She received the Pulitzer Prize for Fiction in 1961.",
-                "Jane Austen was an English novelist known primarily for her six major novels, which interpret, critique and comment upon the British landed gentry at the end of the 18th century.",
-                "The 'Harry Potter' series, which consists of seven fantasy novels written by British author J.K. Rowling, is among the most popular and critically acclaimed books of the modern era.",
-                "'The Great Gatsby', a novel written by American author F. Scott Fitzgerald, was published in 1925. The story is set in the Jazz Age and follows the life of millionaire Jay Gatsby and his pursuit of Daisy Buchanan.",
-              ];
-              console.log("COMPARE", compareWith);
-              console.log("TEXTS", texts);
-              reranker
-                .rerank({
-                  compareWith,
-                  texts,
-                })
-                .then((out) =>
-                  console.log(
-                    "OUTPUT",
-                    out.map((o) => o.text)
-                  )
-                );
-              return;*/
-
-                const query =
-                  //"Do you remember in season 1 when Michael fell asleep in the car and got pulled over by the police? What was your suggestion on how he should handle it?";
-                  "In season 3 What is the connection between Sonny and the deadly poison gas exchange and did something tragic happen?"; // (season 2, ep 8, scene id 4150)
-                // How does Bernie Mitchell present himself in season 2 at the party, and how does Nina Jurgenson react? (season 2, ep 13, scene id 2714)
-                // Do you remember why Devon has so much experience escaping prisons?
-
-                await brain.processQuery(query);
-                //const scenes = await brain.hippocampus.getMemory(query, 1);
-                //console.log(scenes.map((s) => s.entry.summaries));
-                /*
-              scenes.map(({ entry, similarityScore }) => {
-                console.log(similarityScore);
-                console.log(entry.episodeId);
-                console.log((entry?.summaries || []).join("\n---\n"));
-              });*/
+                setReloading(false);
               }}
             >
-              ...
+              reload
             </Button>
           </div>
         </div>

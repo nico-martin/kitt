@@ -11,28 +11,25 @@ class TfPromptApi implements LlmFactoryI {
       type: "module",
     });
   }
-  public initialize = async (
-    cb: (progress: number) => void
-  ): Promise<boolean> => {
-    await LanguageModel.create({
-      temperature: 0,
-      monitor: (m) => {
-        m.addEventListener("downloadprogress", (e) => {
-          cb(e.loaded);
-        });
-      },
-    });
-    cb(1);
-    return true;
-  };
 
   public createConversation = async (
     systemPrompt: string,
-    temperature: number = 1
+    temperature: number = 1,
+    cb: (progress: number) => void
   ): Promise<{ generate: GenerateFn }> => {
+    let progress = 0;
     const session = await LanguageModel.create({
       initialPrompts: [{ role: "system", content: systemPrompt }],
       temperature,
+      monitor: (m) => {
+        m.addEventListener("downloadprogress", (e) => {
+          const l = Math.round(e.loaded * 100) / 100;
+          if (progress !== l) {
+            progress = l;
+            cb(l);
+          }
+        });
+      },
     });
 
     return {

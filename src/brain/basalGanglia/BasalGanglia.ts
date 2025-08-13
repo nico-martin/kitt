@@ -4,6 +4,10 @@ import Log from "@log";
 import cleanUpJsonObject from "@utils/cleanUpJsonObject.ts";
 import answerAsKitt from "@utils/llm/answerAsKitt.ts";
 import LLM from "@utils/llm/llm.ts";
+import { GenerateFn } from "@utils/llm/types.ts";
+
+import isFullSentence from "@brain/basalGanglia/utils/isFullSentence.ts";
+import isFullXMLToolCall from "@brain/basalGanglia/utils/isFullXMLToolCall.ts";
 
 import { AgentType } from "../../agentLog/types.ts";
 import {
@@ -21,6 +25,9 @@ import extractXmlFunctionCalls from "./utils/extractXmlFunctionCalls.ts";
 class BasalGanglia implements BasalGangliaFactory {
   public llm = LLM;
   private functions: Array<FunctionDefinition<any>> = [];
+  private conversation: {
+    generate: GenerateFn;
+  };
 
   constructor() {}
 
@@ -28,29 +35,16 @@ class BasalGanglia implements BasalGangliaFactory {
     this.functions.push(func);
   };
 
-  public startConversation = async (
-    request: string,
-    speak: (input: string) => void,
-    { maxRounds = 4, startedAt = new Date() } = {}
-  ) => {
+  public initialize = async (
+    progress: (p: number) => void
+  ): Promise<boolean> => {
     const systemPrompt = xmlFunctionCallingSystemPrompt(this.functions);
-    const conversation = await this.llm.createConversation(systemPrompt, 0);
-    const calledFunctions: Array<string> = [];
 
     AgentLog.clearLog();
 
-    /*
-    console.log("SYSTEM");
-    console.log(systemPrompt);
-     */
     AgentLog.addEntry({
       type: AgentType.SYSTEM,
       content: systemPrompt,
-    });
-
-    AgentLog.addEntry({
-      type: AgentType.USER,
-      content: request,
     });
 
     Log.addEntry({
@@ -62,6 +56,26 @@ class BasalGanglia implements BasalGangliaFactory {
           content: systemPrompt,
         },
       ],
+    });
+
+    this.conversation = await this.llm.createConversation(
+      systemPrompt,
+      0,
+      progress
+    );
+    return true;
+  };
+
+  public prompt = async (
+    request: string,
+    speak: (input: string) => void,
+    { maxRounds = 4, startedAt = new Date() } = {}
+  ) => {
+    const calledFunctions: Array<string> = [];
+
+    AgentLog.addEntry({
+      type: AgentType.USER,
+      content: request,
     });
 
     const generate = async (query: string, round: number = 1) => {
@@ -79,22 +93,33 @@ class BasalGanglia implements BasalGangliaFactory {
         return "I am sorry, I could not find a final answer.";
       }
 
-      /*
-      console.log("USER");
-      console.log(query);
-       */
-
       const responseEntry = AgentLog.addEntry({
         type: AgentType.AGENT,
         content: "",
       });
 
-      const response = await conversation.generate(query, (resp) => {
+      let processedReply: string = "";
+
+      const response = await this.conversation.generate(query, (resp) => {
+        const newReply = resp.output.replace(processedReply, "");
+        const fullSentence = isFullSentence(newReply);
+        const fullXMLToolCall = isFullXMLToolCall(newReply);
+
+        if (fullSentence || fullXMLToolCall) {
+          processedReply = resp.output;
+        }
+
+        if (fullSentence) {
+          speak(fullSentence);
+        }
+
         AgentLog.updateEntry(responseEntry, {
           content: resp.output,
         });
       });
+
       const parsed = extractXmlFunctionCalls(response.output);
+
       AgentLog.updateEntry(responseEntry, {
         parsed: {
           content: parsed.cleanText,
@@ -107,11 +132,6 @@ class BasalGanglia implements BasalGangliaFactory {
           })),
         },
       });
-
-      /*
-      console.log("AI");
-      console.log(response.output);
-       */
 
       Log.addEntry({
         category: "kittConversation",
@@ -171,7 +191,6 @@ class BasalGanglia implements BasalGangliaFactory {
         });
         return parsed.cleanText;
       } else {
-        speak(parsed.cleanText);
         const results = await Promise.all(
           functionsToCall.map(async (func) => {
             const toolCall = await func.handler(func.parameters, request);

@@ -20,7 +20,8 @@ export type GenerateFn = (
 
 type CreateConversation = (
   systemPrompt: string,
-  temperature?: number
+  temperature?: number,
+  callback?: (progress: number) => void
 ) => Promise<{
   generate: GenerateFn;
 }>;
@@ -32,6 +33,5 @@ export interface LlmContextI {
 }
 
 export interface LlmFactoryI {
-  initialize: (callback?: (progress: number) => void) => Promise<boolean>;
   createConversation: CreateConversation;
 }

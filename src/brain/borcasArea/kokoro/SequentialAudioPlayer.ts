@@ -1,7 +1,6 @@
 class SequentialAudioPlayer {
   private queue: Array<{ blob: Blob; signal: AbortSignal }> = [];
   private _isPlaying = false;
-  private currentAudio: HTMLAudioElement | null = null;
   private isPlayingEventListeners: Set<(isSpeaking: boolean) => void> =
     new Set();
 
@@ -64,11 +63,9 @@ class SequentialAudioPlayer {
       const audio = document.createElement("audio");
 
       audio.src = audioUrl;
-      this.currentAudio = audio;
 
       const cleanup = () => {
         URL.revokeObjectURL(audioUrl);
-        this.currentAudio = null;
         signal.removeEventListener("abort", abortHandler);
       };
 

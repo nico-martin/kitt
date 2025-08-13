@@ -5,6 +5,7 @@ import { LlmFactoryI } from "@utils/llm/types.ts";
 export interface BasalGangliaFactory {
   llm: LlmFactoryI;
   addFunction: <T>(func: FunctionDefinition<T>) => void;
+  initialize: (progress: (p: number) => void) => Promise<boolean>;
   evaluateNextStep: (
     request: string,
     options?: {
@@ -14,7 +15,7 @@ export interface BasalGangliaFactory {
       round?: number;
     }
   ) => Promise<string>;
-  startConversation: (
+  prompt: (
     request: string,
     speak: (i: string) => void,
     options?: {

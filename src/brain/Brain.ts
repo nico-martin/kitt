@@ -66,10 +66,15 @@ class Brain extends EventTarget {
     await Promise.all([
       this.auditoryCortex.initialize(auditoryCortexCallback),
       this.borcasArea.initialize(borcasAreaCallback),
-      this.basalGanglia.llm.initialize((p) => {
-        llmCallback(p);
+      this.basalGanglia.initialize((p) => {
+        if (p === 1) {
+          llmCallback(0.99);
+        } else {
+          llmCallback(p);
+        }
       }),
     ]);
+    llmCallback(1);
     this.status = BrainStatus.READY;
   };
 
@@ -119,15 +124,11 @@ class Brain extends EventTarget {
           }
           text = text.replace(/kid/gi, "KITT");
           this.status = BrainStatus.SPEAKING;
-          const response = await this.basalGanglia.startConversation(
+
+          await this.basalGanglia.prompt(
             text,
             (answer) => answer && this.borcasArea.speak(answer)
           );
-          try {
-            await this.borcasArea.speak(response);
-          } catch (e) {
-            console.log(e);
-          }
 
           this.status = BrainStatus.READY;
         });
@@ -152,9 +153,7 @@ class Brain extends EventTarget {
       );
     }
 
-    return this.basalGanglia.startConversation(query, (i) =>
-      console.log("speak", i)
-    );
+    return this.basalGanglia.prompt(query, (i) => console.log("speak", i));
   };
 }
 
