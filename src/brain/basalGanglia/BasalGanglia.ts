@@ -34,7 +34,7 @@ class BasalGanglia implements BasalGangliaFactory {
     { maxRounds = 4, startedAt = new Date() } = {}
   ) => {
     const systemPrompt = xmlFunctionCallingSystemPrompt(this.functions);
-    const conversation = this.llm.createConversation(systemPrompt, 0);
+    const conversation = await this.llm.createConversation(systemPrompt, 0);
     const calledFunctions: Array<string> = [];
 
     AgentLog.clearLog();
@@ -261,7 +261,7 @@ ${request}`
       ],
     });
 
-    const conversation = this.llm.createConversation(systemPrompt, 0);
+    const conversation = await this.llm.createConversation(systemPrompt, 0);
     const response = await conversation.generate(requestWithHistory);
     const responseOutput = response.output;
     const responseCall = EvaluateNextStepResponseSchema.parse(

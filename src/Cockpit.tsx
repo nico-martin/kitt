@@ -118,6 +118,7 @@ const Cockpit: React.FC<{ className?: string }> = ({ className = "" }) => {
     auditoryCortexProgress,
     borcasAreaProgress,
     motorCortexStatus,
+    llmProgress,
   ]);
 
   return (

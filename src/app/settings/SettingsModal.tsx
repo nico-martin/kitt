@@ -3,7 +3,6 @@ import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
 import {
-  LANGUAGES,
   LLM_NAMES,
   LlmProvider,
   SettingsFormValues,
@@ -80,7 +79,7 @@ const SettingsModal: React.FC<{
               label: label,
             }))}
           />
-          <FormElement
+          {/*<FormElement
             label="Language"
             name="speechToTextLanguage"
             type="select"
@@ -88,7 +87,7 @@ const SettingsModal: React.FC<{
               value: language.lang,
               label: language.label,
             }))}
-          />
+          />*/}
           <FormElement
             label="Input Device"
             name="audioInputDeviceId"

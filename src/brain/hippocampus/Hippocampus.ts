@@ -278,14 +278,14 @@ class Hippocampus implements HippocampusFactory {
       });
 
       const rephrasedQuestion = (
-        await llm
-          .createConversation(
+        await (
+          await llm.createConversation(
             `You are a helpful AI assistant that rephrases questions.`,
             0.1
           )
-          .generate(
-            `Rewrite the following question into a form optimized for vector search. If the question contains direct speech, rephrase it in the third person as if the question was directed to KITT. Output only the rewritten question. QUESTION: "${originalRequest}"`
-          )
+        ).generate(
+          `Rewrite the following question into a form optimized for vector search. If the question contains direct speech, rephrase it in the third person as if the question was directed to KITT. Output only the rewritten question. QUESTION: "${originalRequest}"`
+        )
       ).output;
 
       Log.addEntry({

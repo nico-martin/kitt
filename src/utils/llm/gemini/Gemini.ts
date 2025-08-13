@@ -52,7 +52,7 @@ class Gemini implements LlmFactoryI {
   public createConversation = (
     systemPrompt: string,
     temperature: number = 1
-  ): { generate: GenerateFn } => {
+  ): Promise<{ generate: GenerateFn }> => {
     if (!API_KEY) {
       throw new Error("GOOGLE_AI_STUDIO_API_KEY is required in localStorage");
     }
@@ -60,7 +60,7 @@ class Gemini implements LlmFactoryI {
       { role: "system", content: systemPrompt },
     ];
 
-    return {
+    return Promise.resolve({
       generate: async (
         text: string,
         callback: (data: GenerateReturn) => void = () => {}
@@ -71,7 +71,7 @@ class Gemini implements LlmFactoryI {
         callback(generated);
         return generated;
       },
-    };
+    });
   };
 }
 

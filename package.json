@@ -14,11 +14,11 @@
     "screenplayLoader": "node ./scripts/screenplayLoader.js"
   },
   "dependencies": {
-    "@huggingface/transformers": "^3.3.3",
-    "@mlc-ai/web-llm": "^0.2.79",
+    "@huggingface/transformers": "^3.7.1",
     "@nico-martin/screenplay-parser": "^1.0.8",
     "cheerio": "^1.0.0",
     "idb": "^8.0.1",
+    "language-model-polyfill": "^0.0.16",
     "lucide-react": "^0.471.1",
     "node-fetch": "^3.3.2",
     "phonemizer": "^1.2.1",

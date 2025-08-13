@@ -21,9 +21,9 @@ export type GenerateFn = (
 type CreateConversation = (
   systemPrompt: string,
   temperature?: number
-) => {
+) => Promise<{
   generate: GenerateFn;
-};
+}>;
 
 export interface LlmContextI {
   status: LlmStatus;

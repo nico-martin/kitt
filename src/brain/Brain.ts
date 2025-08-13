@@ -6,7 +6,7 @@ import getSetting from "@utils/settings/getSetting.ts";
 
 import SpeechToText from "./auditoryCortex/SpeechToText.ts";
 import { AuditoryCortexFactory, Listener } from "./auditoryCortex/types.ts";
-import Whisper from "./auditoryCortex/whisper/Whisper.ts";
+import Whisper from "./auditoryCortex/whisper/SpeechToText.ts";
 import BasalGanglia from "./basalGanglia/BasalGanglia.ts";
 import { BasalGangliaFactory } from "./basalGanglia/types.ts";
 import SpeechSynthesis from "./borcasArea/SpeechSynthesis.ts";
@@ -66,7 +66,9 @@ class Brain extends EventTarget {
     await Promise.all([
       this.auditoryCortex.initialize(auditoryCortexCallback),
       this.borcasArea.initialize(borcasAreaCallback),
-      this.basalGanglia.llm.initialize(llmCallback),
+      this.basalGanglia.llm.initialize((p) => {
+        llmCallback(p);
+      }),
     ]);
     this.status = BrainStatus.READY;
   };
