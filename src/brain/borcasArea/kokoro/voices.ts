@@ -108,7 +108,7 @@ const getVoiceFile = async (id: string) => {
 
 const VOICE_CACHE = new Map();
 
-export const getVoiceData = async (voice) => {
+export const getVoiceData = async (voice: string) => {
   if (VOICE_CACHE.has(voice)) {
     return VOICE_CACHE.get(voice);
   }
