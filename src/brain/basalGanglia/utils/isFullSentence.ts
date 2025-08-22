@@ -80,12 +80,12 @@ const isFullSentence = (snippet: string): string | null => {
 
     if (lastWordMatch) {
       const lastWord = lastWordMatch[1].toLowerCase();
-      
+
       // Check if it's a known abbreviation
       if (abbreviations.has(lastWord)) {
         return null;
       }
-      
+
       // Check for initials (single letters)
       if (lastWord.length === 1) {
         return null;
@@ -109,7 +109,7 @@ const isFullSentence = (snippet: string): string | null => {
 
   // Basic check for balanced quotes (simple version)
   const quoteCount = (trimmed.match(/"/g) || []).length;
-  const singleQuoteCount = (trimmed.match(/'/g) || []).length;
+  //const singleQuoteCount = (trimmed.match(/'/g) || []).length;
 
   // If quotes exist, they should be balanced (even number)
   if (quoteCount % 2 !== 0) {

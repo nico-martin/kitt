@@ -107,6 +107,7 @@ onMessage(async (event) => {
   }
 
   try {
+    // @ts-ignore
     const language = /** @type {"a"|"b"} */ voice.at(0); // "a" or "b"
     const phonemes = await phonemize(text, language);
     const { input_ids } = tokenizer(phonemes, {

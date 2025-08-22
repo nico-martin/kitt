@@ -16,9 +16,9 @@ const createSummary = async (
   outputTokens: number;
   inputTokens: number;
 }> => {
-  const summary = await LLM.createConversation(systemPrompt, 0.1).generate(
-    prompt
-  );
+  const summary = await (
+    await LLM.createConversation(systemPrompt, 0.1)
+  ).generate(prompt);
   if (
     summary.output.trim() === "{null}" ||
     summary.output.trim() === '"{null}'

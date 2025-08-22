@@ -1,4 +1,7 @@
-import { XMLToolSignature } from "@ai/types";
+export type XMLToolSignature = {
+  functionName: string;
+  parameters: Record<string, any>;
+};
 
 const isFullXMLToolCall = (snippet: string): XMLToolSignature => {
   const functionCallRegex =
@@ -18,7 +21,7 @@ const isFullXMLToolCall = (snippet: string): XMLToolSignature => {
   let paramMatch;
 
   while ((paramMatch = paramRegex.exec(parametersXml)) !== null) {
-    const [, paramName, type, value] = paramMatch;
+    const [, paramName, , value] = paramMatch;
     parameters[paramName] = value;
   }
 
